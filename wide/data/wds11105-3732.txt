@@ -1,0 +1,167 @@
+USNO Double Star data for WDS 11105-3732
+
+Note: the data request software was rewritten in July 2017, following introduction of the WDS supplement. Please see the
+new datarequest.key file for a description of file contents. This effort is still ongoing; your comments regarding
+format, errors, or missing information are welcome.
+
+------------------------------------------------------------------------------------------------------------------------
+
+MEASURES:
+
+REP  21      1989 2015   10 230 207   1.4   1.6 12.06   .   M3        -100-014                   NC   111027.89-373151.9
+       1988.3         .      .       1.5       .         .     .      0.5    .     500        1.6   1 Rez1989  Pa   6   
+       1989.       230.      .       1.4       .         .     .       .     .    1020 360    3.5   1 Rep1993b C    6   
+       1990.          .      .        .        .       10.66   .       .     .     644 128    0.6   1 Gre1992  C    7   
+       1990.          .      .        .        .       12.04   .       .     .     541  88    0.6   1 Gre1992  C    7   
+       1990.          .      .        .        .       12.83   .       .     .     362  65    0.6   1 Gre1992  C    7   
+       1990.          .      .        .        .       13.52   .       .     .     452  98    0.6   1 Gre1992  C    7   
+       1990.          .      .        .        .        9.11   .       .     .     803 155    0.6   1 Gre1992  C    7   
+       1996.334       .      .        .        .        7.39  0.03    7.82  0.03  2190 409    3.6   1 Geo2001  A    7   
+       1996.334       .      .        .        .        7.79  0.03    8.19  0.03  1645 332    3.6   1 Geo2001  A    7   
+       1996.334       .      .        .        .        8.25  0.03    8.69  0.03  1259 229    3.6   1 Geo2001  A    7   
+       1996.343       .      .        .        .        6.8   0.1      .     .    4832 590    3.6   1 Geo2001  A    7   
+       1996.343       .      .        .        .        7.05  0.08    7.60  0.08  3480 590    3.6   1 Geo2001  A    7   
+       1998.14     215.4    1.0      1.44     0.01      7.28  0.07    7.80  0.07  2200        3.0   1 Wbb1999  Si   7   
+       1998.14        .      .        .        .        7.60  0.1     8.07  0.1   1620        3.0   1 Wbb1999  Ci   7   
+       1998.14        .      .        .        .        8.22  0.1     8.63  0.1   1250        3.0   1 Wbb1999  Ci   7   
+       1998.496    216.11   0.03     1.469    0.001     7.52  0.01    7.90  0.01  1641  17    2.4   1 Wnt2000  Hn   7   
+       1998.496       .      .        .        .        7.37  0.01    7.79  0.01  2149  20    2.4   1 Wnt2000  Hn   7   
+       1998.496       .      .        .        .        7.60  0.01    7.98  0.01  1900  17    2.4   1 Wnt2000  Hn   7   
+       2002.          .      .        .        .       14.04   .     14.59   .     440        0.6   1 TrC2006  C    7   
+       2002.          .      .        .        .       12.57   .     13.07   .     550        0.6   1 TrC2006  C    7   
+       2002.          .      .        .        .        9.72   .     10.0    .     790        0.6   1 TrC2006  C    7   
+       2002.          .      .        .        .       12.57   .     13.07   .     550        0.6   1 TrC2006  C    7   
+       2002.          .      .        .        .       14.04   .     14.59   .     440        0.6   1 TrC2006  C    7   
+       2002.          .      .        .        .        9.72   .     10.0    .     790        0.6   1 TrC2006  C    7   
+       2003.136       .      .        .        .         .     .      0.42   .    2166  23    8.2   1 Cor2006  A    7   
+       2003.136    213.4    0.5      1.481    0.003      .     .      0.40   .    1644  18    8.2   1 Cor2006  A    7   
+       2004.143    215.78   0.09     1.477    0.006     7.53  0.05    8.15  0.07  1680        9.8   1 Bnk2003  A    6   
+       2008.9754      .      .    <  0.020   >0.040      .     .    > 2.43   .    2120 350    9.8   1 EvT2012  A    7   
+       2008.9754      .      .    <  0.040   >0.080      .     .    > 3.61   .    2120 350    9.8   1 EvT2012  A    7   
+       2008.9754      .      .    <  0.080   >0.160      .     .    > 3.47   .    2120 350    9.8   1 EvT2012  A    7   
+       2008.9754      .      .    <  0.160   >0.240      .     .    > 3.24   .    2120 350    9.8   1 EvT2012  A    7   
+       2008.9754      .      .    <  0.240   >0.320      .     .    > 2.96   .    2120 350    9.8   1 EvT2012  A    7   
+       2010.0698   208.9     .       1.526     .         .     .       .     .     550  24    4.0   2 Msn2018a Su   7   
+       2010.08        .      .        .        .         .     .      0.37  0.01   763 153    3.5   1 Jnn2012  Cl   7   
+       2010.08     209.1    0.3      1.504    0.015      .     .       .     .     913  95    3.5   1 Jnn2014b Cl   7   
+       2010.08     209.3    0.3      1.523    0.001      .     .      0.41  0.01   913  95    3.5   1 Jnn2012  Cl X 7   
+       2014.2646   207.387  0.687    1.5124   0.0181     .     .      0.217 0.009  440  98    4.3   1 Kll2017  C    7   
+       2014.2646      .      .        .        .         .     .      0.306 0.004  550  89    4.3   1 Kll2017  C    7   
+       2014.2646      .      .        .        .         .     .      0.354 0.003  660  80    4.3   1 Kll2017  C    7   
+       2014.2646      .      .        .        .         .     .      0.389 0.008  800 200    4.3   1 Kll2017  C    7   
+       2015.000    207.165   .       1.541     .       11.036  .     11.397  .     673 440    1.0   1 Kpp2018m Hg   7   
+       2015.0277   207.1    0.0      1.5504   0.0007     .     .      0.5    .     788 132    4.1   2 Tok2015c St   7   
+
+------------------------------------------------------------------------------------------------------------------------
+
+ORBITAL ELEMENTS:
+
+                  ------P-------  ---a------  --i-----  Node----  -----T-------  -e------  omega---  G  Reference
+REP  21              785.76    y    2.321  a  120.67    331.95     2321.3     y  0.1694    260.46    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+REP  21              699.96    y    2.160  a  122.30    324.51     1707.0     y  0.2490    298.97    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+REP  21              766.13    y    2.291  a  122.11    137.13     1761.2     y  0.3215    135.74    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+REP  21              671.73    y    2.100  a  124.91    133.24     1805.0     y  0.3976    133.43    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+REP  21              685.21    y    2.119  a  126.52    126.39     1835.6     y  0.4671    135.42    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+REP  21              748.55    y    2.245  a  128.22    114.51     1868.4     y  0.5602    135.00    5  Kll2017 
+               +/-      .            .           .         .           .          .           .    
+
+
+ORBITAL EPHEMERIDES:
+
+Name            Grade  Reference   Theta   Rho      Theta   Rho      Theta   Rho      Theta   Rho  
+                                       2016.0           2017.0           2018.0           2019.0   
+REP  21           5    Kll2017     206.6   1.555    206.1   1.561    205.6   1.566    205.1   1.572
+REP  21           5    Kll2017     206.6   1.556    206.1   1.562    205.6   1.567    205.1   1.573
+REP  21           5    Kll2017     206.6   1.556    206.1   1.561    205.6   1.567    205.1   1.573
+REP  21           5    Kll2017     206.6   1.555    206.1   1.561    205.6   1.566    205.1   1.572
+REP  21           5    Kll2017     206.6   1.555    206.1   1.561    205.6   1.566    205.1   1.572
+REP  21           5    Kll2017     206.6   1.556    206.1   1.561    205.6   1.567    205.1   1.572
+
+------------------------------------------------------------------------------------------------------------------------
+
+LINEAR ELEMENTS:
+
+                    X0.........  XA.......  Y0.........  YA.......   T0...... RHO0... THETA0  Reference
+REP  21               -0.759513   0.009094     1.305082   0.012677   2008.496   1.510 210.20  Hrt2017a
+               +/-     0.015919   0.002131     0.013565   0.001816      0.003   0.014   0.58
+REP  21               -1.104478   0.013160     0.862668   0.016848 * 1982.259   1.402 232.01  Msn2016b
+               +/-      .          .            .          .             .       .       .  
+
+
+LINEAR EPHEMERIDES:
+
+Name           Reference   ... 2015.0 ..   ... 2020.0 ..   ... 2025.0 ..   ... 2030.0 ..   ... 2035.0 ..   ... 2040.0 ..
+                           theta ..rho..   theta ..rho..   theta ..rho..   theta ..rho..   theta ..rho..   theta ..rho..
+REP  21        Hrt2017a    206.8   1.554   204.3   1.592   201.9   1.632   199.7   1.675   197.5   1.721   195.5   1.769
+REP  21        Msn2016b    205.5   1.567   202.1   1.617   198.9   1.673   195.9   1.734   193.2   1.799   190.6   1.868
+
+------------------------------------------------------------------------------------------------------------------------
+
+NOTES:
+
+REP  21     IRAS 11080-3715 = PDS 50 = TWA 3.                                       Gre1992 
+            This previously known binary (e.g. Brandeker et al. 2003) is part of    Bnk2003 
+            the TW Hya association, and is also known as TWA 3.                     Jnn2012 
+            Rectilinear solution by Miles & Mason (2016)                            Msn2016b
+            and Mason et al. (2018).                                                Msn2018a
+
+------------------------------------------------------------------------------------------------------------------------
+
+REFERENCES:
+
+Bnk2003      Brandeker, A., Jayawardhana, R., & Najita, J.                                       2003AJ....126.2009B
+             AJ 126, 2009, 2003                                                                                     
+             (slight correction to 2001.145 theta and its error given by Neuhauser et al. 2010)  2010A&A...516A.112N
+Cor2006      Correia, S., Zinnecker, H., Ratzka, Th., & Sterzik, M.F.                            2006A&A...459..909C
+             A&A 459, 909, 2006                (some data reprocessed by Csepany et al. 2017)    2017A&A...603A..74C
+EvT2012      Evans, T.M., Ireland, M.J., Kraus, A.L., Martinache, F., Stewart, P.,               2012ApJ...744..120E
+             Tuthill, P.G., Lacour, S., Carpenter, J.M., & Hillenbrand, L.A.                                        
+             ApJ 744, 120, 2012                                                                                     
+Geo2001      Geoffray, H. & Monin, J.-L.                                                         2001A&A...369..239G
+             A&A 369, 239, 2001                                                                                     
+             (ESO 3.6m + ADONIS/SHARPII AO)                                                                         
+Gre1992      Gregorio-Hetem, J., Lepine, J.R.D., Quast, .R., Torres, C.A.O., & de la Reza, R.    1992AJ....103..549G
+             AJ 103, 549, 1992                                                                                      
+Hrt2017a     Hartkopf, W.I. & Mason, B.D.                                                        ...................
+             Catalog of Rectilinear Elements (v 2017.09.20)                                                         
+             (http://www.usno.navy.mil/USNO/astrometry/optical-IR-prod/wds/lin1)                                    
+Jnn2012      Janson, M., Hormuth, F., Bergfors, C., Brandner, W., Hippler, S., Daemgen, S.,      2012ApJ...754...44J
+             Kudryavtseva, N., Schmalzl, E., Schnupp, C., & Henning, T.                                             
+             ApJ 754, 44, 2012               (some recalibrated measures published in Jnn2014b)  2014ApJS..214...17J
+Jnn2014b     Janson, M., Bergfors, C., Brandner, W., Bonnefoy, M., Schlieder, J., Kohler, R.,    2014ApJS..214...17J
+             Hormuth, F., Henning, T., &  Hippler, S.                                                               
+             ApJS 214, 17, 2014                                                                                     
+             (includes some recalibrated measures originally published in earlier papers)                           
+Kll2017      Kellogg, K., Prato, L., Torres, G., Schaefer, G.H., Avilez, I., Ruiz-Rodriguez, D.  2017ApJ...844..168K
+             Wasserman, L.H., Bonanos, A.Z., Guenther, E.W., Neuhauser, R., Levine, S.E.,                           
+             Bosh, A.S., et al.                                                                                     
+             ApJ 844, 168, 2017                                                                                     
+Kpp2018m     Knapp, W.R.A. & Nanson, J.                                                          2018JDSO...14..503K
+             JDSO 14, 503, 2018                                                                  .                  
+Msn2016b     Miles, S.K.N. & Mason, B.D.                                                         2016IAUDS.190....1M
+             Inf. Circ. 190, 1, 2016                                                                                
+Msn2018a     Mason, B.D., Hartkopf, W.I., Miles, K.N., Subasavage, J.P., Raghavan, D. &          2018AJ....155..215M
+             Henry, T.J.                                                                         .                  
+             AJ 155, 215, 2018                                                                                      
+Rep1993b     Reipurth, B. & Zinnecker, H.                                                        1993A&A...278...81R
+             A&A 278, 81, 1993                                                                                      
+Rez1989      de la Reza, R., Torres, C., Quast, G., Castilho, B.V., & Vieira, G.L.               1989ApJ...343L..61D
+             ApJ 343, L61, 1989                                                                                     
+Tok2015c     Tokovinin, A., Mason, B.D., Hartkopf, W.I., Mendez, R.A., & Horch, E.P.             2015AJ....150...50T
+             AJ 150, 50, 2015                  (some measures corrected in Tok2017b)             2017AJ....154..110T
+TrC2006      Torres, C.A.O., Quast, G.R., da Silva, L., de La Reza, R., Melo, C.H.F., &          2006A&A...460..695T
+             Sterzik, M.                                                                                            
+             A&A 460, 695, 2006                                                                                     
+Wbb1999      Webb, R.A., Zuckerman, B., Platais, I., Patience, J., White, R.J., Schwartz, M.,    1999ApJ...512L..63W
+             & McCarthy, C.                                                                                         
+             ApJ 512, L63, 1999   (IRTF 3.0m. K-band speckle, other filters are direct imaging)                     
+Wnt2000      Weintraub, D.A., Saumon, D., Kastner, J.H., & Forveille, T.                         2000ApJ...530..867W
+             ApJ 530, 867, 2000                                                                                     
+
+------------------------------------------------------------------------------------------------------------------------
+
