@@ -134,4 +134,4 @@ ax_pa.set_xlim(*yr_lim)
 
 ax_pa.set_xlabel("Epoch [yr]")
 
-fig.savefig("sep_pa.pdf")
+fig.savefig("plots/sep_pa.pdf")
