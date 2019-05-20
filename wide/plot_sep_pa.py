@@ -105,9 +105,9 @@ ax_sky.invert_xaxis()
 ax_sky.plot(0,0, "*", ms=5, color="k", mew=0.1)
 
 # plot the sky positions
-X_ABs = data["sep"] * np.cos(data["pa"] * np.pi/180)
-Y_ABs = data["sep"] * np.sin(data["pa"] * np.pi/180)
-ax_sky.plot(X_ABs, Y_ABs, **pkwargs)
+X_ABs = data["sep"] * np.cos(data["pa"] * np.pi/180) # north
+Y_ABs = data["sep"] * np.sin(data["pa"] * np.pi/180) # east
+ax_sky.plot(Y_ABs, X_ABs, **pkwargs)
 
 # plot the sky uncertainties
 
