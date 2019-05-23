@@ -121,7 +121,7 @@ with pm.Model() as parallax_model:
 
     # we expect the period to be somewhere in the range of 25 years,
     # so we'll set a broad prior on logP
-    logP = pm.Normal("logP", mu=np.log(400), sd=1.0)
+    logP = pm.Normal("logP", mu=np.log(400), sd=1.5)
     P = pm.Deterministic("P", tt.exp(logP) * yr) # days
 
     omega = Angle("omega", testval=180 * deg) # - pi to pi
@@ -137,12 +137,15 @@ with pm.Model() as parallax_model:
     incl = pm.Deterministic("incl", tt.arccos(cos_incl))
     e = pm.Uniform("e", lower=0.0, upper=1.0, testval=0.3)
 
-    # now that we have a physical scale defined, we can also calculate the total mass of the system
-    Mtot = pm.Deterministic("Mtot", calc_Mtot(a, P))
 
     # n.b. that we include an extra conversion for a, because exoplanet expects a in R_sun
     orbit = xo.orbits.KeplerianOrbit(a=a * au_to_R_sun, t_periastron=t_periastron, period=P,
                                    incl=incl, ecc=e, omega=omega, Omega=Omega)
+
+
+    # now that we have a physical scale defined, we can also calculate the total mass of the system
+    Mtot = pm.Deterministic("Mtot", orbit.m_total)
+    Mtot_kepler = pm.Deterministic("MtotKepler", calc_Mtot(a, P))
 
     rho_phys, theta_model = orbit.get_relative_angles(jds - jd0) # the rho, theta model values
 
@@ -223,9 +226,9 @@ with parallax_model:
 
 
 # now let's actually explore the posterior for real
-sampler = xo.PyMC3Sampler(finish=500, chains=4)
+sampler = xo.PyMC3Sampler(finish=400, chains=4)
 with parallax_model:
-    burnin = sampler.tune(tune=2000, start=map_sol3, step_kwargs=dict(target_accept=0.95))
+    burnin = sampler.tune(tune=2200, start=map_sol3, step_kwargs=dict(target_accept=0.95))
 #     print("sampling trace")
     trace = sampler.sample(draws=7000)
 #     trace = pm.sample(draws=1000, tune=4000, start=map_sol3, chains=2, step_kwargs=dict(target_accept=0.99))

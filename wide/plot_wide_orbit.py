@@ -52,21 +52,23 @@ theta_data[theta_data > np.pi] -= 2 * np.pi
 
 theta_err = np.ascontiguousarray(data["PA_err"] * deg) # radians
 
-import numpy as np
-import matplotlib
-# matplotlib.rcParams["text.usetex"] = False
-matplotlib.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import pymc3 as pm
-import theano.tensor as tt
+def calc_Mtot(a, P):
+    '''
+    Calculate the total mass of the system using Kepler's third law.
 
-from astropy.io import ascii
+    Args:
+        a (au) semi-major axis
+        P (days) period
 
-np.random.seed(43)
+    Returns:
+        Mtot (M_sun) total mass of system (M_primary + M_secondary)
+    '''
 
-deg = np.pi/180.0
+    day_to_s = (1 * u.day).to(u.s).value
+    au_to_m = (1 * u.au).to(u.m).value
+    kg_to_M_sun = (1 * u.kg).to(u.M_sun).value
 
+    return 4 * np.pi**2 * (a * au_to_m)**3 / (constants.G.value * (P * day_to_s)**2) * kg_to_M_sun
 
 # Set up the model in PyMC3
 
@@ -105,12 +107,13 @@ with pm.Model() as parallax_model:
     incl = pm.Deterministic("incl", tt.arccos(cos_incl))
     e = pm.Uniform("e", lower=0.0, upper=1.0, testval=0.3)
 
-    # now that we have a physical scale defined, we can also calculate the total mass of the system
-    Mtot = pm.Deterministic("Mtot", calc_Mtot(a, P))
-
     # n.b. that we include an extra conversion for a, because exoplanet expects a in R_sun
     orbit = xo.orbits.KeplerianOrbit(a=a * au_to_R_sun, t_periastron=t_periastron, period=P,
                                    incl=incl, ecc=e, omega=omega, Omega=Omega)
+
+    # now that we have a physical scale defined, we can also calculate the total mass of the system
+    Mtot = pm.Deterministic("Mtot", orbit.m_total)
+    Mtot_kepler = pm.Deterministic("MtotKepler", calc_Mtot(a, P))
 
     rho_phys, theta_model = orbit.get_relative_angles(jds - jd0) # the rho, theta model values
 
@@ -145,13 +148,13 @@ with pm.Model() as parallax_model:
 
 with parallax_model:
     trace = pm.backends.ndarray.load_trace("current")
-#
+
 
 sample_vars = ["parallax", "a_ang", "logP", "omega", "Omega", "e", "cosIncl", "phi", "logRhoS", "logThetaS"]
 print(pm.summary(trace, varnames=sample_vars))
 
 trace_plot = pm.traceplot(trace, varnames=sample_vars)
-trace_plot.savefig("plots/traceplot.pdf")
+plt.savefig("plots/traceplot.pdf")
 
 
 samples = pm.trace_to_dataframe(trace, varnames=sample_vars)
@@ -161,9 +164,9 @@ fig.savefig("plots/corner_sample_vars.png")
 
 
 
-samples = pm.trace_to_dataframe(trace, varnames=["a", "P", "omega", "Omega", "e", "incl", "phi"])
+samples = pm.trace_to_dataframe(trace, varnames=["Mtot", "MtotKepler", "a", "P", "omega", "Omega", "e", "incl", "phi"])
 samples["P"] /= yr
-corner.corner(samples)
+fig = corner.corner(samples, range=[[0, 4], [0, 4], 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99])
 fig.savefig("plots/corner_present_vars.png")
 
 # we can plot the maximum posterior solution to see
@@ -177,7 +180,7 @@ ax[2].set_ylabel(r'P.A. [radians]')
 ax[3].set_ylabel(r'P.A. residuals')
 
 nsamples = 50
-choices = np.random.choice(np.arange(nsamples), size=nsamples)
+choices = np.random.choice(len(trace), size=nsamples)
 
 # get map sol for tot_rho_err
 
@@ -228,10 +231,15 @@ ax[3].axhline(0.0, color="0.5")
 ax[3].errorbar(jds, np.zeros_like(jds), yerr=tot_theta_err, **ekw)
 fig.savefig("plots/posterior_rho_sep.pdf")
 
+
+xs = rho_data * np.cos(theta_data) # X is north
+ys = rho_data * np.sin(theta_data) # Y is east
+
 ax_sky.plot(ys, xs, "ko")
 ax_sky.set_ylabel(r"$\Delta \delta$ ['']")
 ax_sky.set_xlabel(r"$\Delta \alpha \cos \delta$ ['']")
 ax_sky.invert_xaxis()
 ax_sky.plot(0,0, "k*")
 ax_sky.set_aspect("equal", "datalim")
+fig_sky.subplots_adjust(left=0.18, right=0.82)
 fig_sky.savefig("plots/posterior_sky.pdf")
