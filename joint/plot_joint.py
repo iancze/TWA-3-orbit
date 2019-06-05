@@ -516,7 +516,9 @@ ax_sky.plot(0,0, "k*")
 ax_sky.set_aspect("equal", "datalim")
 
 # fig.subplots_adjust(top=0.98, bottom=0.18, hspace=0.05)
-# fig.savefig("A_sb_orbit.pdf")
+fig.savefig("A_sb_orbit.pdf")
+fig_sky.savefig("sky.pdf")
+fig_sep.savefig("sep.pdf")
 
 
 pm.summary(trace)

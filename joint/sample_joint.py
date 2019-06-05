@@ -425,7 +425,7 @@ with model:
 sampler = xo.PyMC3Sampler(finish=400, chains=4)
 with model:
     burnin = sampler.tune(tune=2000, start=map_sol3, step_kwargs=dict(target_accept=0.9))
-    trace = sampler.sample(draws=2000)
+    trace = sampler.sample(draws=6000)
 
 
 pm.backends.ndarray.save_trace(trace, directory="current", overwrite=True)
