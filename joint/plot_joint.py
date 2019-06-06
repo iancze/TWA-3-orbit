@@ -187,7 +187,7 @@ def calc_a(Mtot, P):
     return (((Mtot / kg_to_M_sun) * constants.G.value * (P * day_to_s)**2) / (4 * np.pi**2))**(1/3) / au_to_m
 
 
-# In[63]:
+
 
 
 zeros = np.zeros_like(wds[0])

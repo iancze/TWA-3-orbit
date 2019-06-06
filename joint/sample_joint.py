@@ -366,12 +366,12 @@ with pm.Model() as model:
 
 
     # RV predictions
-    t_dense_RV = xs_phase * P_inner + t_periastron_inner
-
-    rv1, rv2 = get_RVs(t_dense_RV, t_dense_RV, 0.0)
-
-    rv1_dense = pm.Deterministic("RV1Dense", rv1)
-    rv2_dense = pm.Deterministic("RV2Dense", rv2)
+    # t_dense_RV = xs_phase * P_inner + t_periastron_inner
+    #
+    # rv1, rv2 = get_RVs(t_dense_RV, t_dense_RV, 0.0)
+    #
+    # rv1_dense = pm.Deterministic("RV1Dense", rv1)
+    # rv2_dense = pm.Deterministic("RV2Dense", rv2)
 
     # get the astrometric predictions
     # since there is only one Anthonioz measurement, we won't use jitter
@@ -396,19 +396,19 @@ with pm.Model() as model:
     theta_diff_outer = tt.arctan2(tt.sin(theta_outer - wds[3]), tt.cos(theta_outer - wds[3]))
     pm.Normal("obs_theta_outer", mu=theta_diff_outer, observed=zeros, sd=theta_tot_err)
 
-    # save some samples on a fine orbit for plotting purposes
-    t_period = pm.Deterministic("tPeriod", xs_phase * P_outer)
-
-    rho, theta = orbit_outer.get_relative_angles(t_period, parallax)
-    rho_save_sky = pm.Deterministic("rhoSaveSky", rho)
-    theta_save_sky = pm.Deterministic("thetaSaveSky", theta)
-
-    rho, theta = orbit_outer.get_relative_angles(t_data, parallax)
-    rho_save_data = pm.Deterministic("rhoSaveData", rho)
-    theta_save_data = pm.Deterministic("thetaSaveData", theta)
-
-    rvA_dense = pm.Deterministic("RVADense", get_gamma_A(t_period))
-    rvB_dense = pm.Deterministic("RVBDense", conv * orbit_outer.get_planet_velocity(t_period)[2] +                                  gamma_outer + offset_keck)
+    # # save some samples on a fine orbit for plotting purposes
+    # t_period = pm.Deterministic("tPeriod", xs_phase * P_outer)
+    #
+    # rho, theta = orbit_outer.get_relative_angles(t_period, parallax)
+    # rho_save_sky = pm.Deterministic("rhoSaveSky", rho)
+    # theta_save_sky = pm.Deterministic("thetaSaveSky", theta)
+    #
+    # rho, theta = orbit_outer.get_relative_angles(t_data, parallax)
+    # rho_save_data = pm.Deterministic("rhoSaveData", rho)
+    # theta_save_data = pm.Deterministic("thetaSaveData", theta)
+    #
+    # rvA_dense = pm.Deterministic("RVADense", get_gamma_A(t_period))
+    # rvB_dense = pm.Deterministic("RVBDense", conv * orbit_outer.get_planet_velocity(t_period)[2] +                                  gamma_outer + offset_keck)
 
 
 # optimize to get a decent starting point
@@ -422,10 +422,16 @@ with model:
 
 
 # now let's actually explore the posterior for real
-sampler = xo.PyMC3Sampler(finish=400, chains=4)
+sampler = xo.PyMC3Sampler(finish=500, chains=4)
 with model:
-    burnin = sampler.tune(tune=2000, start=map_sol3, step_kwargs=dict(target_accept=0.9))
-    trace = sampler.sample(draws=6000)
+    burnin = sampler.tune(tune=3000, start=map_sol3, step_kwargs=dict(target_accept=0.9))
+    trace = sampler.sample(draws=8000)
+
+# translate to an HDF5 backend and save
+
+df = pm.trace_to_dataframe(trace)
+df.to_csv("current2.csv")
+df.to_csv("current.csv")
 
 
-pm.backends.ndarray.save_trace(trace, directory="current", overwrite=True)
+# pm.backends.ndarray.save_trace(trace, directory="current", overwrite=True)
