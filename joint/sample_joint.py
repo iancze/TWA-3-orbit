@@ -427,11 +427,16 @@ with model:
     burnin = sampler.tune(tune=3000, start=map_sol3, step_kwargs=dict(target_accept=0.9))
     trace = sampler.sample(draws=8000)
 
-# translate to an HDF5 backend and save
-
+# save as CSV file
 df = pm.trace_to_dataframe(trace)
-df.to_csv("current2.csv")
 df.to_csv("current.csv")
 
 
 # pm.backends.ndarray.save_trace(trace, directory="current", overwrite=True)
+
+# pm.summary(trace)
+#
+# vars = ["MAa", "MAb", "MA", "MB", "Mtot", "t_periastron_inner", "gamma_outer", "a_ang_inner", "logP_inner", "omega_inner",
+#         "Omega_inner", "cos_incl_inner", "e_inner", "phi_outer", "omega_outer", "Omega_outer",
+#         "cos_incl_outer", "e_outer"]
+# pm.traceplot(trace, varnames=vars)
