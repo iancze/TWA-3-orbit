@@ -17,14 +17,17 @@ df = pd.read_csv("current.csv")
 
 print(df.columns)
 
-# fig = corner.corner(df)
-# fig.savefig("corner-all.png", dpi=120)
+# plot the raw parameters
+sample_pars = ['mparallax', 'MAb', 'a_ang_inner', 'logP_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'cos_incl_inner', 't_periastron_inner', 'logP_outer', 'omega_outer', 'Omega_outer', 'phi_outer', 'cos_incl_outer', 'e_outer', 'gamma_outer', 'MB', 'offsetKeck', 'offsetFeros', 'offsetDupont', 'logRhoS', 'logThetaS', 'logjittercfa', 'logjitterkeck', 'logjitterferos', 'logjitterdupont']
 
-# all_params = ['MAa', 'MAb', 'MA', 'MB', 'Mtot', 'offsetKeck', 'offsetFeros', 'offsetDupont', 'logRhoS', 'logThetaS', 'parallax',     'a_inner', 'P_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'incl_inner',
-#        't_periastron_inner', 'P_outer', 'omega_outer',
-#        'Omega_outer', 't_periastron_outer', 'incl_outer', 'e_outer', 'gamma_outer', , 'a_outer',
-#        'a_ang_outer', 'logjittercfa', 'logjitterkeck', 'logjitterferos',
-#        'logjitterdupont', 'jitCfa', 'jitKeck', 'jitFeros', 'jitDupont'
+# also choose a sample at random and use the starting position
+row0 = df.sample()
+for par in sample_pars:
+    print("{:} : {:}".format(par, row0[par].values[0]))
+
+
+fig = corner.corner(df[sample_pars])
+fig.savefig("corner-sample-pars.png", dpi=120)
 
 # convert all params
 df["omega_inner"] /= deg
@@ -38,15 +41,13 @@ df["incl_outer"] /= deg
 df["P_outer"] /= yr
 
 # just the inner parameters
-inner = ['a_inner', 'P_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'incl_inner', 't_periastron_inner']
-df_inner = df[inner]
-fig = corner.corner(df_inner)
+inner = ['MAb', 'MA', 'a_inner', 'P_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'incl_inner', 't_periastron_inner']
+fig = corner.corner(df[inner])
 fig.savefig("corner-inner.png", dpi=120)
 
 # just the outer parameters
 outer = ['MA', 'MB', 'a_outer', 'P_outer', 'omega_outer', 'Omega_outer', 'e_outer', 'incl_outer', 'gamma_outer', 't_periastron_outer']
-df_outer = df[outer]
-fig = corner.corner(df_outer)
+fig = corner.corner(df[outer])
 fig.savefig("corner-outer.png", dpi=120)
 
 

@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from matplotlib import rcParams
-rcParams["text.usetex"] = False
+# rcParams["text.usetex"] = False
 
 from astropy.time import Time
 from astropy.io import ascii
@@ -271,17 +271,70 @@ f_rv_B = theano.function(all_pars, rv_B, on_unused_input='ignore')
 f_sky_inner = theano.function(all_pars, sky_inner, on_unused_input='ignore')
 f_sky_outer = theano.function(all_pars, sky_outer, on_unused_input='ignore')
 
-# df = pd.read_csv("current.csv")
+df = pd.read_csv("current2.csv")
 
-# choose a row
-point = {'mparallax': 27.2524725187522, 'MAb': 0.3195272138033488, 'logP_outer': 6.053500611796124, 'a_ang_inner':5.040505761754926, 'logP_inner': 3.551915346134, 'e_inner': 0.6285750345509075, 'omega_inner': 1.4312824422027448, 'Omega_inner': 2.2582003585943577, 'cos_incl_inner': 0.7289230631685191, 't_periastron_inner': 4039.235344081754, 'omega_outer': 1.9308495943976969, 'Omega_outer': -0.6840373795005446, 'phi_outer': 1.698476926320593, 'cos_incl_outer': -0.6200574391132161, 'e_outer': 0.32579347494004146, 'gamma_outer': 9.640327676030022, 'MB': 0.8334279373718931}
-point['times'] = keck1[0]
+np.random.seed(42)
+# also choose a sample at random and use the starting position
+sample_pars = ['mparallax', 'MAb', 'a_ang_inner', 'logP_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'cos_incl_inner', 't_periastron_inner', 'logP_outer', 'omega_outer', 'Omega_outer', 'phi_outer', 'cos_incl_outer', 'e_outer', 'gamma_outer', 'MB']
 
-print(f_rv_Aa(**point))
+row0 = df.sample()
+point = {par:row0[par].item() for par in sample_pars}
 
+P_inner = np.exp(point["logP_inner"]) # days
 
-# point["times"] = anthonioz[0]
-# rho_inner, theta_inner = f_sky_inner(anthonioz[0])
+def get_phase(dates):
+    return ((dates - point["t_periastron_inner"]) % P_inner) / P_inner
+
+lmargin = 0.5
+rmargin = lmargin
+bmargin = 0.4
+tmargin = 0.05
+mmargin = 0.07
+mmmargin = 0.15
+
+ax_height = 1.0
+ax_r_height = 0.3
+
+xx = 3.5
+ax_width = xx - lmargin - rmargin
+
+yy = bmargin + tmargin + 2 * mmargin + mmmargin + 2 * ax_height + 2 * ax_r_height
+
+pkw = {"marker":".", "ls":""}
+ekw = {"marker":".", "ms":5.0, "ls":"", "elinewidth":1.2}
+
+xs_phase = np.linspace(0, 1, num=500)
+ts_phases = xs_phase * P_inner + point["t_periastron_inner"]
+point['times'] = ts_phases
+
+fig = plt.figure(figsize=(xx,yy))
+
+ax1 = fig.add_axes([lmargin/xx, 1 - (tmargin + ax_height)/yy, ax_width/xx, ax_height/yy])
+ax1.plot(xs_phase, f_rv_Aa(**point))
+
+ax1_r = fig.add_axes([lmargin/xx, 1 - (tmargin + mmargin + ax_height + ax_r_height)/yy, ax_width/xx, ax_r_height/yy])
+
+ax2 = fig.add_axes([lmargin/xx, (bmargin + mmargin + ax_r_height)/yy, ax_width/xx, ax_height/yy])
+ax2.plot(xs_phase, f_rv_Ab(**point))
+
+ax2_r = fig.add_axes([lmargin/xx, bmargin/yy, ax_width/xx, ax_r_height/yy])
+
+def plot_data(ax, ax_r, offset_label):
+    # get the data, apply offset, and plot residuals for instruments
+    pass
+
+ax1.set_ylabel(r"$v_\mathrm{Aa}$ [$\mathrm{km s}^{-1}$]")
+ax1_r.set_ylabel("O-C")
+
+ax2.set_ylabel(r"$v_\mathrm{Ab}$ [$\mathrm{km s}^{-1}$]")
+ax2_r.set_ylabel("O-C")
+ax2_r.set_xlabel("phase")
+fig.savefig("inner_RV.pdf")
+fig.savefig("inner_RV.png", dpi=300)
+
+# point["times"] = np.atleast_1d(anthonioz[0])
+# rho_inner, theta_inner = f_sky_inner(**point)
+# print(rho_inner, theta_inner)
 
 # # get the total errors
 # def get_err(rv_err, logjitter):
@@ -328,8 +381,6 @@ print(f_rv_Aa(**point))
 # pkw = {"marker":".", "ls":""}
 # ekw = {"marker":".", "ms":5.0, "ls":"", "elinewidth":1.2}
 #
-# def get_phase(dates, pos):
-#     return ((dates - pos["t_periastron_inner"]) % pos["P_inner"]) / pos["P_inner"]
 #
 # # nsamples = 10
 # # choices = np.random.choice(np.arange(len(trace)), size=nsamples)

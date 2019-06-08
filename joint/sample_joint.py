@@ -123,7 +123,6 @@ theta_data = int_data["pa"][0] * deg # radians
 theta_err = int_data["pa_err"][0] * deg # radians
 
 anthonioz = (astro_jd, rho_data, rho_err, theta_data, theta_err)
-print(anthonioz)
 
 
 # load the astrometry for the wide orbit
@@ -201,7 +200,7 @@ with pm.Model() as model:
     mparallax = pm.Normal("mparallax", mu=27.31, sd=0.12) # milliarcsec GAIA DR2
     parallax = pm.Deterministic("parallax", 1e-3 * mparallax) # arcsec
 
-    a_ang_inner = pm.Uniform("a_ang_inner", 0.1, 10.0, testval=5.51) # milliarcsec
+    a_ang_inner = pm.Uniform("a_ang_inner", 0.1, 10.0, testval=4.99) # milliarcsec
 
     # the semi-major axis in au
     a_inner = pm.Deterministic("a_inner", 1e-3 * a_ang_inner / parallax) # au
@@ -210,19 +209,19 @@ with pm.Model() as model:
                       testval=np.log(34.87846)) # days
     P_inner = pm.Deterministic("P_inner", tt.exp(logP_inner))
 
-    e_inner = pm.Uniform("e_inner", lower=0, upper=1, testval=0.62)
+    e_inner = pm.Uniform("e_inner", lower=0, upper=1, testval=0.63)
 
-    omega_inner = Angle("omega_inner", testval=80.5 * deg) # omega_Aa
-    Omega_inner = Angle("Omega_inner", testval=110.0 * deg)
+    omega_inner = Angle("omega_inner", testval=1.40) # omega_Aa
+    Omega_inner = Angle("Omega_inner", testval=2.048)
 
     cos_incl_inner = pm.Uniform("cos_incl_inner", lower=-1.0, upper=1.0,
-                                testval=0.8)
+                                testval=-0.724)
     incl_inner = pm.Deterministic("incl_inner", tt.arccos(cos_incl_inner))
 
-    MAb = pm.Normal("MAb", mu=0.3, sd=0.5) # solar masses
+    MAb = pm.Normal("MAb", mu=0.31, sd=0.5) # solar masses
 
     t_periastron_inner = pm.Uniform("t_periastron_inner", lower=4020.0, upper=4070.,
-                                    testval=4047.0) # + 2400000 + jd0
+                                    testval=4039.14) # + 2400000 + jd0
 
     orbit_inner = xo.orbits.KeplerianOrbit(a=a_inner*au_to_R_sun, period=P_inner, ecc=e_inner,
                   t_periastron=t_periastron_inner, omega=omega_inner, Omega=Omega_inner,
@@ -232,37 +231,31 @@ with pm.Model() as model:
     MA = pm.Deterministic("MA", orbit_inner.m_total)
     MAa = pm.Deterministic("MAa", MA - MAb)
 
-    # define outer orbit stuff
-#     a_ang_outer = pm.Uniform("a_ang_outer", 0.1, 4.0, testval=1.8) # arcsec
-
-    # the semi-major axis in au
-#     a_outer = pm.Deterministic("a_outer", a_ang_outer / parallax) # au
-
     # we expect the period to be somewhere in the range of 25 years,
     # so we'll set a broad prior on logP
-    logP_outer = pm.Normal("logP_outer", mu=np.log(500), sd=1.0) # yrs
+    logP_outer = pm.Normal("logP_outer", mu=6.71, sd=1.0) # yrs
     P_outer = pm.Deterministic("P_outer", tt.exp(logP_outer) * yr) # days
 
-    omega_outer = Angle("omega_outer", testval=-80 * deg) # - pi to pi
-    Omega_outer = Angle("Omega_outer", testval=2.1) # - pi to pi
+    omega_outer = Angle("omega_outer", testval=-0.939) # - pi to pi
+    Omega_outer = Angle("Omega_outer", testval=-0.491) # - pi to pi
 
-    phi_outer = Angle("phi_outer", testval=1.1)
+    phi_outer = Angle("phi_outer", testval=0.63)
 
     n = 2*np.pi*tt.exp(-logP_outer) / yr # radians per day
 
     t_periastron_outer = pm.Deterministic("t_periastron_outer", (phi_outer + omega_outer) / n)
 
-    cos_incl_outer = pm.Uniform("cos_incl_outer", lower=-1., upper=1.0, testval=np.cos(120.0 * deg))
+    cos_incl_outer = pm.Uniform("cos_incl_outer", lower=-1., upper=1.0, testval=-0.60)
     incl_outer = pm.Deterministic("incl_outer", tt.arccos(cos_incl_outer))
-    e_outer = pm.Uniform("e_outer", lower=0.0, upper=1.0, testval=0.3)
-    gamma_outer = pm.Uniform("gamma_outer", lower=0, upper=15, testval=9.0) # km/s on CfA RV scale
+    e_outer = pm.Uniform("e_outer", lower=0.0, upper=1.0, testval=0.03)
+    gamma_outer = pm.Uniform("gamma_outer", lower=0, upper=15, testval=9.8) # km/s on CfA RV scale
 
     # We would like to use MB as a parameter, but we have already defined Mtot via the
     # semi-major axis and period, and we have already defined MA from the inner orbit.
 #     Mtot = pm.Deterministic("Mtot", calc_Mtot(a_outer, P_outer))
 #     MB = pm.Deterministic("MB", Mtot - MA) # solar masses
     PosNormal = pm.Bound(pm.Normal, lower=0.0)
-    MB = PosNormal("MB", mu=0.5, sd=0.3, testval=0.5)
+    MB = PosNormal("MB", mu=0.26, sd=0.3, testval=0.5)
     Mtot = pm.Deterministic("Mtot", MA + MB)
 
     # instead, what if MB becomes a parameter, and then a_outer is calculated from Mtot and P_outer?
@@ -274,17 +267,10 @@ with pm.Model() as model:
             t_periastron=t_periastron_outer, omega=omega_outer, Omega=Omega_outer,
                                      incl=incl_outer, m_planet=MB)
 
-    # now that we have a physical scale defined, the total mass of the system makes sense
-#     Mtot_orbit = pm.Deterministic("Mtot_orbit", orbit_outer.m_total)
-
-    # MA derived from outer orbit. Hopefully consistent with derivation from inner orbit.
-#     MA_outer = pm.Deterministic("MA_outer", Mtot_orbit - MB)
-
-
     # parameters to shift the RV scale onto the CfA scale
-    offset_keck = pm.Normal("offsetKeck", mu=0.0, sd=5.0) # km/s
-    offset_feros = pm.Normal("offsetFeros", mu=0.0, sd=5.0) # km/s
-    offset_dupont = pm.Normal("offsetDupont", mu=0.0, sd=5.0) # km/s
+    offset_keck = pm.Normal("offsetKeck", mu=-1.4, sd=5.0) # km/s
+    offset_feros = pm.Normal("offsetFeros", mu=0.7, sd=5.0) # km/s
+    offset_dupont = pm.Normal("offsetDupont", mu=-0.57, sd=5.0) # km/s
 
 
     def get_gamma_A(t):
@@ -337,10 +323,10 @@ with pm.Model() as model:
     rv1_feros, rv2_feros = get_RVs(feros1[0], feros2[0], offset_feros)
     rv1_dupont, rv2_dupont = get_RVs(dupont1[0], dupont2[0], offset_dupont)
 
-    logjit_cfa = pm.Uniform("logjittercfa", lower=-5.0, upper=np.log(10), testval=np.log(1.0))
-    logjit_keck = pm.Uniform("logjitterkeck", lower=-5.0, upper=np.log(10), testval=np.log(1.0))
-    logjit_feros = pm.Uniform("logjitterferos", lower=-5.0, upper=np.log(10), testval=np.log(1.0))
-    logjit_dupont = pm.Uniform("logjitterdupont", lower=-5.0, upper=np.log(10), testval=np.log(1.0))
+    logjit_cfa = pm.Uniform("logjittercfa", lower=-5.0, upper=np.log(10), testval=1.45)
+    logjit_keck = pm.Uniform("logjitterkeck", lower=-5.0, upper=np.log(10), testval=-0.27)
+    logjit_feros = pm.Uniform("logjitterferos", lower=-5.0, upper=np.log(10), testval=1.32)
+    logjit_dupont = pm.Uniform("logjitterdupont", lower=-5.0, upper=np.log(10), testval=0.66)
     jit_cfa = pm.Deterministic("jitCfa", tt.exp(logjit_cfa))
     jit_keck = pm.Deterministic("jitKeck", tt.exp(logjit_keck))
     jit_feros = pm.Deterministic("jitFeros", tt.exp(logjit_feros))
@@ -364,15 +350,6 @@ with pm.Model() as model:
     pm.Normal("dupontRV1Obs", mu=rv1_dupont, observed=dupont1[1], sd=get_err(dupont1[2], logjit_dupont))
     pm.Normal("dupontRV2Obs", mu=rv2_dupont, observed=dupont2[1], sd=get_err(dupont2[2], logjit_dupont))
 
-
-    # RV predictions
-    # t_dense_RV = xs_phase * P_inner + t_periastron_inner
-    #
-    # rv1, rv2 = get_RVs(t_dense_RV, t_dense_RV, 0.0)
-    #
-    # rv1_dense = pm.Deterministic("RV1Dense", rv1)
-    # rv2_dense = pm.Deterministic("RV2Dense", rv2)
-
     # get the astrometric predictions
     # since there is only one Anthonioz measurement, we won't use jitter
     rho_inner, theta_inner = orbit_inner.get_relative_angles(anthonioz[0], parallax) # arcsec
@@ -386,8 +363,8 @@ with pm.Model() as model:
     rho_outer, theta_outer = orbit_outer.get_relative_angles(wds[0], parallax) # arcsec
 
     # add jitter terms to both separation and position angle
-    log_rho_s = pm.Normal("logRhoS", mu=np.log(np.median(wds[2])), sd=2.0)
-    log_theta_s = pm.Normal("logThetaS", mu=np.log(np.median(wds[4])), sd=2.0)
+    log_rho_s = pm.Normal("logRhoS", mu=-5.14, sd=2.0)
+    log_theta_s = pm.Normal("logThetaS", mu=-4.03, sd=2.0)
 
     rho_tot_err = tt.sqrt(wds[2]**2 + tt.exp(2*log_rho_s))
     theta_tot_err = tt.sqrt(wds[4]**2 + tt.exp(2*log_theta_s))
@@ -396,47 +373,29 @@ with pm.Model() as model:
     theta_diff_outer = tt.arctan2(tt.sin(theta_outer - wds[3]), tt.cos(theta_outer - wds[3]))
     pm.Normal("obs_theta_outer", mu=theta_diff_outer, observed=zeros, sd=theta_tot_err)
 
-    # # save some samples on a fine orbit for plotting purposes
-    # t_period = pm.Deterministic("tPeriod", xs_phase * P_outer)
-    #
-    # rho, theta = orbit_outer.get_relative_angles(t_period, parallax)
-    # rho_save_sky = pm.Deterministic("rhoSaveSky", rho)
-    # theta_save_sky = pm.Deterministic("thetaSaveSky", theta)
-    #
-    # rho, theta = orbit_outer.get_relative_angles(t_data, parallax)
-    # rho_save_data = pm.Deterministic("rhoSaveData", rho)
-    # theta_save_data = pm.Deterministic("thetaSaveData", theta)
-    #
-    # rvA_dense = pm.Deterministic("RVADense", get_gamma_A(t_period))
-    # rvB_dense = pm.Deterministic("RVBDense", conv * orbit_outer.get_planet_velocity(t_period)[2] +                                  gamma_outer + offset_keck)
-
-
 # optimize to get a decent starting point
-with model:
-    map_sol0 = xo.optimize(vars=[t_periastron_inner, gamma_outer])
-    map_sol1 = xo.optimize(map_sol0, vars=[a_ang_inner, logP_inner, omega_inner, Omega_inner,
-                                           cos_incl_inner, e_inner, gamma_outer])
-    map_sol2 = xo.optimize(map_sol1, vars=[phi_outer, omega_outer,
-                                            Omega_outer, cos_incl_outer, e_outer])
-    map_sol3 = xo.optimize(map_sol2)
+# with model:
+#     map_sol0 = xo.optimize(vars=[t_periastron_inner, gamma_outer])
+#     map_sol1 = xo.optimize(map_sol0, vars=[a_ang_inner, logP_inner, omega_inner, Omega_inner,
+#                                            cos_incl_inner, e_inner, gamma_outer])
+#     map_sol2 = xo.optimize(map_sol1, vars=[phi_outer, omega_outer,
+#                                             Omega_outer, cos_incl_outer, e_outer])
+#     map_sol3 = xo.optimize(map_sol2)
 
 
 # now let's actually explore the posterior for real
-sampler = xo.PyMC3Sampler(finish=500, chains=4)
+# sampler = xo.PyMC3Sampler(finish=1000, chains=4)
 with model:
-    burnin = sampler.tune(tune=3000, start=map_sol3, step_kwargs=dict(target_accept=0.9))
-    trace = sampler.sample(draws=8000)
+    # burnin = sampler.tune(tune=5000, step_kwargs=dict(target_accept=0.9))
+    # trace = sampler.sample(draws=8000)
+    trace = pm.sample(draws=4000, tune=2000, step_kwargs=dict(target_accept=0.9), chains=4)
 
 # save as CSV file
 df = pm.trace_to_dataframe(trace)
 df.to_csv("current.csv")
 
+vars=['mparallax', 'MAb', 'a_ang_inner', 'logP_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'cos_incl_inner', 't_periastron_inner', 'logP_outer', 'omega_outer', 'Omega_outer', 'phi_outer', 'cos_incl_outer', 'e_outer', 'gamma_outer', 'MB', 'offsetKeck', 'offsetFeros', 'offsetDupont', 'logRhoS', 'logThetaS', 'logjittercfa', 'logjitterkeck', 'logjitterferos', 'logjitterdupont']
 
-# pm.backends.ndarray.save_trace(trace, directory="current", overwrite=True)
-
-# pm.summary(trace)
-#
-# vars = ["MAa", "MAb", "MA", "MB", "Mtot", "t_periastron_inner", "gamma_outer", "a_ang_inner", "logP_inner", "omega_inner",
-#         "Omega_inner", "cos_incl_inner", "e_inner", "phi_outer", "omega_outer", "Omega_outer",
-#         "cos_incl_outer", "e_outer"]
-# pm.traceplot(trace, varnames=vars)
+pm.summary(trace)
+pm.traceplot(trace, varnames=vars)
+plt.savefig("traceplot.png", dpi=120)
