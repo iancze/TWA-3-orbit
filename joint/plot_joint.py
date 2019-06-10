@@ -17,6 +17,7 @@ import theano.tensor as tt
 import exoplanet as xo
 from exoplanet.distributions import Angle
 
+from gas import plot_gas
 
 deg = np.pi/180. # radians / degree
 yr = 365.25 # days / year
@@ -271,7 +272,7 @@ f_rv_B = theano.function(all_pars, rv_B, on_unused_input='ignore')
 f_sky_inner = theano.function(all_pars, sky_inner, on_unused_input='ignore')
 f_sky_outer = theano.function(all_pars, sky_outer, on_unused_input='ignore')
 
-df = pd.read_csv("current2.csv")
+df = pd.read_csv("current.csv")
 
 np.random.seed(42)
 # also choose a sample at random and use the starting position
@@ -383,6 +384,40 @@ def jd_to_year(t):
     '''
     return Time(t + jd0, format="jd").byear
 
+
+# Custom routine for plotting polar error bars onto cartesian plane
+def plot_errorbar(ax, thetas, rhos, theta_errs, rho_errs, **kwargs):
+    '''
+    All kwargs sent to plot. Thetas are in radians.
+    '''
+
+    thetas = np.atleast_1d(thetas)
+    rhos = np.atleast_1d(rhos)
+    theta_errs = np.atleast_1d(theta_errs)
+    rho_errs = np.atleast_1d(rho_errs)
+
+    assert len(thetas) == len(rhos) == len(theta_errs) == len(rho_errs)
+
+    for theta, rho, theta_err, rho_err in zip(thetas, rhos, theta_errs, rho_errs):
+
+        # In this notation, x has been flipped.
+        # x = rho * np.sin(theta)
+        # y = rho * np.cos(theta)
+
+        # Calculate two lines, one for theta_err, one for rho_err
+
+        # theta error
+        # theta error needs a small correction in the rho direction in order to go right through the data point
+        delta = rho * (1/np.cos(theta_err) - 1)
+        xs = (rho + delta) * np.sin(np.array([theta - theta_err, theta + theta_err]))
+        ys = (rho + delta) * np.cos(np.array([theta - theta_err, theta + theta_err]))
+        ax.plot(xs, ys, **kwargs)
+
+        # rho error
+        xs = np.sin(theta) * np.array([(rho - rho_err), (rho + rho_err)])
+        ys = np.cos(theta) * np.array([(rho - rho_err), (rho + rho_err)])
+        ax.plot(xs, ys, **kwargs)
+
 # Plot the astrometric fits.
 # 1 square panel on left, then 3 rows of panels on right (rho, theta, v_B)
 
@@ -396,8 +431,8 @@ lmargin = 0.5
 rmargin = 0.5
 mmargin = 0.75
 
-pkw = {"marker":"o", "ms":4, "color":"C0", "ls":""}
-ekw = {"marker":"o", "ms":4, "ls":"", "elinewidth":0.8, "zorder":20}
+pkw = {"marker":"o", "ms":3, "color":"C0", "ls":"", "zorder":20}
+ekw = {"marker":"o", "ms":3, "ls":"", "elinewidth":0.8, "zorder":20}
 
 xx = 2 * ax_width + lmargin + rmargin + mmargin
 yy = ax_height + tmargin + bmargin
@@ -407,27 +442,23 @@ fig = plt.figure(figsize=(xx,yy))
 ax_sky = fig.add_axes([lmargin/xx, bmargin/yy, ax_width/xx, ax_height/yy])
 ax_sky.set_xlabel(r'$\Delta \alpha \cos \delta\; [{}^{\prime\prime}]$')
 ax_sky.set_ylabel(r'$\Delta \delta\; [{}^{\prime\prime}]$')
-ax_sky.invert_xaxis()
+# ax_sky.invert_xaxis()
+
+# load and plot the gas image here; routine in gas.py
+# frame width also set there
+plot_gas(ax_sky)
+
 
 # plot the star
 ax_sky.plot(0,0, "*", ms=5, color="k", mew=0.1, zorder=99)
-
-# wds = (jds, rho_data, rho_err, theta_data, theta_err)
-
 # plot the sky positions
 X_ABs = wds[1] * np.cos(wds[3]) # north
 Y_ABs = wds[1] * np.sin(wds[3]) # east
 ax_sky.plot(Y_ABs, X_ABs, **pkw)
+plot_errorbar(ax_sky, wds[3], wds[1], wds[4], wds[2], color="C0", lw=0.8)
 
-# plot the sky uncertainties
-
-# set the frame to look fine
-rad = 2.5
-ax_sky.set_xlim(rad,-rad)
-ax_sky.set_ylim(-rad,rad)
-
+# make the right-column plots
 yr_lim = (1990, 2020)
-
 ax_sep = fig.add_axes([(lmargin + ax_width + mmargin)/xx, (2 * (sax_height + hmargin) + bmargin)/yy, ax_width/xx, sax_height/yy])
 ax_pa = fig.add_axes([(lmargin + ax_width + mmargin)/xx, (sax_height + hmargin + bmargin)/yy, ax_width/xx, sax_height/yy])
 ax_V = fig.add_axes([(lmargin + ax_width + mmargin)/xx, bmargin/yy, ax_width/xx, sax_height/yy])
@@ -439,50 +470,69 @@ ax_sep.set_xlim(*yr_lim)
 ax_sep.xaxis.set_ticklabels([])
 
 pa_err = np.sqrt(wds[4]**2 + np.exp(2 * apoint["logThetaS"]))
-ax_pa.errorbar(jd_to_year(wds[0]), wds[3]/deg, yerr=pa_err/deg, **ekw)
+ax_pa.errorbar(jd_to_year(wds[0]), wds[3]/deg + 360, yerr=pa_err/deg, **ekw)
 ax_pa.set_ylabel(r'$\theta\ [{}^\circ]$')
 ax_pa.set_xlim(*yr_lim)
 ax_pa.xaxis.set_ticklabels([])
 
 kekw = {**ekw, "color":"C1"}
 VB_err = np.sqrt(keck3[2]**2 + np.exp(2 * apoint["logjitterkeck"]))
-ax_V.errorbar(jd_to_year(keck3[0]), keck3[1] - apoint["offsetKeck"], yerr=VB_err, **kekw)
+ax_V.errorbar(jd_to_year(keck3[0]), keck3[1] - apoint["offsetKeck"], yerr=VB_err, **kekw, label="Keck")
 ax_V.set_xlim(*yr_lim)
-ax_V.set_ylabel(r"$v_\mathrm{B} \quad [\mathrm{km s}^{-1}$]")
+ax_V.set_ylim(6, 11)
+ax_V.set_ylabel(r"$v_\mathrm{B} \quad [\mathrm{km\;s}^{-1}$]")
 ax_V.set_xlabel("Epoch [yr]")
+ax_V.legend(loc="upper left", fontsize="xx-small", labelspacing=0.5, handletextpad=0.2, borderpad=0.4, borderaxespad=1.0)
+
+
+pos_outer = orbit_outer.get_relative_position(t, parallax)
+f_pos_outer = theano.function(all_pars, pos_outer, on_unused_input='ignore')
+
+# draw random samples and plot them on the figures
+nsamples = 20
+samples = df.sample(n=nsamples)
+
+t_yr = np.linspace(*yr_lim, num=500)
+t_obs = Time(t_yr, format="byear").jd - jd0
+
+dkw = {"linewidth":0.5}
+
+for index, row in samples.iterrows():
+
+    # make the dictionary as before
+    point = {par:row[par].item() for par in sample_pars}
+
+    # choose the color based upon Omega family
+    if point["Omega_outer"] > 50 * deg:
+        color = "C3"
+    else:
+        color = "0.5"
+
+    # calculate time ranges going from current point onward in time
+    P_outer = np.exp(point["logP_outer"]) * yr # days
+    t_full_period = np.linspace(0, P_outer, num=500)
+
+    point["times"] = t_full_period
+
+    # get the relative positions
+    X,Y,Z = f_pos_outer(**point)
+
+    ax_sky.plot(Y, X, lw=0.5, color=color, zorder=10)
+
+    point["times"] = t_obs
+
+    # get the sep, pa, and V_B for the observed ranges
+    rho, theta = f_sky_outer(**point)
+    ax_sep.plot(t_yr, rho, **dkw, color=color, alpha=0.7)
+    ax_pa.plot(t_yr, theta/deg + 360, **dkw, color=color, alpha=0.7)
+
+    vBs = f_rv_B(**point)
+    ax_V.plot(t_yr, vBs, **dkw, color=color, alpha=0.7)
+
+    # we can select orbits which have a higher vB[-1] than vB[0]
+    # and colorize them
+
 
 
 fig.savefig("sep_pa.png", dpi=320)
 fig.savefig("sep_pa.pdf")
-
-
-#
-#     # add jitter terms to both separation and position angle
-#     log_rho_s = pm.Normal("logRhoS", mu=np.log(np.median(wds[2])), sd=2.0)
-#     log_theta_s = pm.Normal("logThetaS", mu=np.log(np.median(wds[4])), sd=2.0)
-#
-#     rho_tot_err = tt.sqrt(wds[2]**2 + tt.exp(2*log_rho_s))
-#     theta_tot_err = tt.sqrt(wds[4]**2 + tt.exp(2*log_theta_s))
-##
-#     # save some samples on a fine orbit for plotting purposes
-#     t_period = pm.Deterministic("tPeriod", xs_phase * P_outer)
-#
-# # nsamples = 10
-# # choices = np.random.choice(np.arange(len(trace)), size=nsamples)
-#
-#
-# xs = wds[1] * np.cos(wds[3]) # X is north
-# ys = wds[1] * np.sin(wds[3]) # Y is east
-#
-# ax_sep[0].set_ylabel(r"$\rho$ ['']")
-# ax_sep[1].set_ylabel("P.A. ['']")
-# ax_sep[2].set_ylabel(r"$v_A$ [km/s]")
-# ax_sep[3].set_ylabel(r"$v_B$ [km/s]")
-#
-# ax_sky.plot(ys, xs, "ko")
-# ax_sky.set_ylabel(r"$\Delta \delta$ ['']")
-# ax_sky.set_xlabel(r"$\Delta \alpha \cos \delta$ ['']")
-# ax_sky.invert_xaxis()
-# ax_sky.plot(0,0, "k*")
-# ax_sky.set_aspect("equal", "datalim")
-#

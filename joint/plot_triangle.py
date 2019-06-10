@@ -55,3 +55,6 @@ fig.savefig("corner-outer.png", dpi=120)
 masses = ['MAa', 'MAb', 'MA', 'MB', 'Mtot']
 fig = corner.corner(df[masses])
 fig.savefig("corner-masses.png", dpi=120)
+
+
+# mutual inclination between inner orbit and outer orbit
