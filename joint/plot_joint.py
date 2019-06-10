@@ -340,7 +340,6 @@ def plot_data(data, f, a, a_r, label):
     err = np.sqrt(data[2]**2 + np.exp(2 * err_dict[label]))
 
     color = color_dict[label]
-    print(label, err)
     a.errorbar(phase, d, yerr=err, label=label, **ekw, color=color)
     a_r.errorbar(phase, resid, yerr=err, **ekw, color=color)
 
@@ -434,7 +433,7 @@ ax_pa = fig.add_axes([(lmargin + ax_width + mmargin)/xx, (sax_height + hmargin +
 ax_V = fig.add_axes([(lmargin + ax_width + mmargin)/xx, bmargin/yy, ax_width/xx, sax_height/yy])
 
 sep_err = np.sqrt(wds[2]**2 + np.exp(2 * apoint["logRhoS"]))
-ax_sep.errorbar(jd_to_year(wds[0]), wds[1]/deg, yerr=sep_err/deg, **ekw)
+ax_sep.errorbar(jd_to_year(wds[0]), wds[1], yerr=sep_err, **ekw)
 ax_sep.set_ylabel(r'$\rho\;[{}^{\prime\prime}]$')
 ax_sep.set_xlim(*yr_lim)
 ax_sep.xaxis.set_ticklabels([])
