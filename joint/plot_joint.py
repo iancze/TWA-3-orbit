@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from matplotlib import rcParams
+# from matplotlib import rcParams
 # rcParams["text.usetex"] = False
 
 from astropy.time import Time
@@ -187,7 +187,7 @@ t_data = np.linspace(-yr, wds[0][-1] + yr)
 # rvAa(t)
 # rvAb(t)
 # correct the data from each RV instrument based on offset
-# a draw only, since P and offsets don't scatter well in this space
+# one draw only, since P and offsets don't scatter well in this space
 
 # 2) plot of X,Y (Ab rel Aa)
 # multiple posterior draws
@@ -277,15 +277,18 @@ np.random.seed(42)
 # also choose a sample at random and use the starting position
 sample_pars = ['mparallax', 'MAb', 'a_ang_inner', 'logP_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'cos_incl_inner', 't_periastron_inner', 'logP_outer', 'omega_outer', 'Omega_outer', 'phi_outer', 'cos_incl_outer', 'e_outer', 'gamma_outer', 'MB']
 
+all_vars=['mparallax', 'MAb', 'a_ang_inner', 'logP_inner', 'e_inner', 'omega_inner', 'Omega_inner', 'cos_incl_inner', 't_periastron_inner', 'logP_outer', 'omega_outer', 'Omega_outer', 'phi_outer', 'cos_incl_outer', 'e_outer', 'gamma_outer', 'MB', 'offsetKeck', 'offsetFeros', 'offsetDupont', 'logRhoS', 'logThetaS', 'logjittercfa', 'logjitterkeck', 'logjitterferos', 'logjitterdupont']
+
 row0 = df.sample()
 point = {par:row0[par].item() for par in sample_pars}
+apoint = {par:row0[par].item() for par in all_vars}
 
 P_inner = np.exp(point["logP_inner"]) # days
 
 def get_phase(dates):
     return ((dates - point["t_periastron_inner"]) % P_inner) / P_inner
 
-lmargin = 0.5
+lmargin = 0.58
 rmargin = lmargin
 bmargin = 0.4
 tmargin = 0.05
@@ -293,15 +296,16 @@ mmargin = 0.07
 mmmargin = 0.15
 
 ax_height = 1.0
-ax_r_height = 0.3
+ax_r_height = 0.4
 
 xx = 3.5
 ax_width = xx - lmargin - rmargin
 
 yy = bmargin + tmargin + 2 * mmargin + mmmargin + 2 * ax_height + 2 * ax_r_height
 
-pkw = {"marker":".", "ls":""}
-ekw = {"marker":".", "ms":5.0, "ls":"", "elinewidth":1.2}
+hkw = {"lw":1.0, "color":"0.4", "ls":":"}
+pkw = {"ls":"-", "lw":1.5, "color":"k"}
+ekw = {"marker":".", "ms":3.0, "ls":"", "elinewidth":0.8, "zorder":20}
 
 xs_phase = np.linspace(0, 1, num=500)
 ts_phases = xs_phase * P_inner + point["t_periastron_inner"]
@@ -310,25 +314,63 @@ point['times'] = ts_phases
 fig = plt.figure(figsize=(xx,yy))
 
 ax1 = fig.add_axes([lmargin/xx, 1 - (tmargin + ax_height)/yy, ax_width/xx, ax_height/yy])
-ax1.plot(xs_phase, f_rv_Aa(**point))
+ax1.plot(xs_phase, f_rv_Aa(**point), **pkw)
 
 ax1_r = fig.add_axes([lmargin/xx, 1 - (tmargin + mmargin + ax_height + ax_r_height)/yy, ax_width/xx, ax_r_height/yy])
+ax1_r.axhline(0.0, **hkw)
 
 ax2 = fig.add_axes([lmargin/xx, (bmargin + mmargin + ax_r_height)/yy, ax_width/xx, ax_height/yy])
-ax2.plot(xs_phase, f_rv_Ab(**point))
+ax2.plot(xs_phase, f_rv_Ab(**point), **pkw)
 
 ax2_r = fig.add_axes([lmargin/xx, bmargin/yy, ax_width/xx, ax_r_height/yy])
+ax2_r.axhline(0.0, **hkw)
 
-def plot_data(ax, ax_r, offset_label):
-    # get the data, apply offset, and plot residuals for instruments
-    pass
+
+err_dict = {"CfA":apoint["logjittercfa"], "Keck":apoint["logjitterkeck"], "FEROS":apoint['logjitterferos'], "du Pont":apoint["logjitterdupont"]}
+offset_dict = {"CfA":0.0, "Keck":apoint["offsetKeck"], "FEROS":apoint["offsetFeros"], "du Pont":apoint["offsetDupont"]}
+color_dict = {"CfA":"C0", "Keck":"C1", "FEROS":"C2", "du Pont":"C3"}
+
+def plot_data(data, f, a, a_r, label):
+    phase = get_phase(data[0])
+    point["times"] = data[0]
+    model = f(**point)
+    offset = offset_dict[label]
+    d = data[1] - offset
+    resid = d - model
+    err = np.sqrt(data[2]**2 + np.exp(2 * err_dict[label]))
+
+    color = color_dict[label]
+    print(label, err)
+    a.errorbar(phase, d, yerr=err, label=label, **ekw, color=color)
+    a_r.errorbar(phase, resid, yerr=err, **ekw, color=color)
+
+plot_data(cfa1, f_rv_Aa, ax1, ax1_r, "CfA")
+plot_data(keck1, f_rv_Aa, ax1, ax1_r, "Keck")
+plot_data(feros1, f_rv_Aa, ax1, ax1_r, "FEROS")
+plot_data(dupont1, f_rv_Aa, ax1, ax1_r, "du Pont")
+
+plot_data(cfa2, f_rv_Ab, ax2, ax2_r, "CfA")
+plot_data(keck2, f_rv_Ab, ax2, ax2_r, "Keck")
+plot_data(feros2, f_rv_Ab, ax2, ax2_r, "FEROS")
+plot_data(dupont2, f_rv_Ab, ax2, ax2_r, "du Pont")
+
+ax1.legend(loc="upper left", fontsize="xx-small", labelspacing=0.5, handletextpad=0.2, borderpad=0.4, borderaxespad=1.0)
 
 ax1.set_ylabel(r"$v_\mathrm{Aa}$ [$\mathrm{km s}^{-1}$]")
-ax1_r.set_ylabel("O-C")
+ax1_r.set_ylabel(r"$O-C$")
 
 ax2.set_ylabel(r"$v_\mathrm{Ab}$ [$\mathrm{km s}^{-1}$]")
-ax2_r.set_ylabel("O-C")
+ax2_r.set_ylabel(r"$O-C$")
 ax2_r.set_xlabel("phase")
+
+ax = [ax1, ax1_r, ax2, ax2_r]
+for a in ax:
+    a.set_xlim(0, 1)
+
+ax1.xaxis.set_ticklabels([])
+ax1_r.xaxis.set_ticklabels([])
+ax2.xaxis.set_ticklabels([])
+
 fig.savefig("inner_RV.pdf")
 fig.savefig("inner_RV.png", dpi=300)
 
@@ -336,20 +378,85 @@ fig.savefig("inner_RV.png", dpi=300)
 # rho_inner, theta_inner = f_sky_inner(**point)
 # print(rho_inner, theta_inner)
 
-# # get the total errors
-# def get_err(rv_err, logjitter):
-#     return tt.sqrt(rv_err**2 + tt.exp(2*logjitter))
+def jd_to_year(t):
+    '''
+    Convert JD referenced to jd0 into a year.
+    '''
+    return Time(t + jd0, format="jd").byear
 
-#
-#     # RV predictions
-#     t_dense_RV = xs_phase * P_inner + t_periastron_inner
-#
-#     rv1, rv2 = get_RVs(t_dense_RV, t_dense_RV, 0.0)
-#
-#     rv1_dense = pm.Deterministic("RV1Dense", rv1)
-#     rv2_dense = pm.Deterministic("RV2Dense", rv2)
-#
-#     rho_outer, theta_outer = orbit_outer.get_relative_angles(wds[0], parallax) # arcsec
+# Plot the astrometric fits.
+# 1 square panel on left, then 3 rows of panels on right (rho, theta, v_B)
+
+ax_width = 2.7
+hmargin = 0.0
+ax_height = 2.7
+sax_height = (ax_height - hmargin)/3
+tmargin = 0.1
+bmargin = 0.5
+lmargin = 0.5
+rmargin = 0.5
+mmargin = 0.75
+
+pkw = {"marker":"o", "ms":4, "color":"C0", "ls":""}
+ekw = {"marker":"o", "ms":4, "ls":"", "elinewidth":0.8, "zorder":20}
+
+xx = 2 * ax_width + lmargin + rmargin + mmargin
+yy = ax_height + tmargin + bmargin
+
+fig = plt.figure(figsize=(xx,yy))
+
+ax_sky = fig.add_axes([lmargin/xx, bmargin/yy, ax_width/xx, ax_height/yy])
+ax_sky.set_xlabel(r'$\Delta \alpha \cos \delta\; [{}^{\prime\prime}]$')
+ax_sky.set_ylabel(r'$\Delta \delta\; [{}^{\prime\prime}]$')
+ax_sky.invert_xaxis()
+
+# plot the star
+ax_sky.plot(0,0, "*", ms=5, color="k", mew=0.1, zorder=99)
+
+# wds = (jds, rho_data, rho_err, theta_data, theta_err)
+
+# plot the sky positions
+X_ABs = wds[1] * np.cos(wds[3]) # north
+Y_ABs = wds[1] * np.sin(wds[3]) # east
+ax_sky.plot(Y_ABs, X_ABs, **pkw)
+
+# plot the sky uncertainties
+
+# set the frame to look fine
+rad = 2.5
+ax_sky.set_xlim(rad,-rad)
+ax_sky.set_ylim(-rad,rad)
+
+yr_lim = (1990, 2020)
+
+ax_sep = fig.add_axes([(lmargin + ax_width + mmargin)/xx, (2 * (sax_height + hmargin) + bmargin)/yy, ax_width/xx, sax_height/yy])
+ax_pa = fig.add_axes([(lmargin + ax_width + mmargin)/xx, (sax_height + hmargin + bmargin)/yy, ax_width/xx, sax_height/yy])
+ax_V = fig.add_axes([(lmargin + ax_width + mmargin)/xx, bmargin/yy, ax_width/xx, sax_height/yy])
+
+sep_err = np.sqrt(wds[2]**2 + np.exp(2 * apoint["logRhoS"]))
+ax_sep.errorbar(jd_to_year(wds[0]), wds[1]/deg, yerr=sep_err/deg, **ekw)
+ax_sep.set_ylabel(r'$\rho\;[{}^{\prime\prime}]$')
+ax_sep.set_xlim(*yr_lim)
+ax_sep.xaxis.set_ticklabels([])
+
+pa_err = np.sqrt(wds[4]**2 + np.exp(2 * apoint["logThetaS"]))
+ax_pa.errorbar(jd_to_year(wds[0]), wds[3]/deg, yerr=pa_err/deg, **ekw)
+ax_pa.set_ylabel(r'$\theta\ [{}^\circ]$')
+ax_pa.set_xlim(*yr_lim)
+ax_pa.xaxis.set_ticklabels([])
+
+kekw = {**ekw, "color":"C1"}
+VB_err = np.sqrt(keck3[2]**2 + np.exp(2 * apoint["logjitterkeck"]))
+ax_V.errorbar(jd_to_year(keck3[0]), keck3[1] - apoint["offsetKeck"], yerr=VB_err, **kekw)
+ax_V.set_xlim(*yr_lim)
+ax_V.set_ylabel(r"$v_\mathrm{B} \quad [\mathrm{km s}^{-1}$]")
+ax_V.set_xlabel("Epoch [yr]")
+
+
+fig.savefig("sep_pa.png", dpi=320)
+fig.savefig("sep_pa.pdf")
+
+
 #
 #     # add jitter terms to both separation and position angle
 #     log_rho_s = pm.Normal("logRhoS", mu=np.log(np.median(wds[2])), sd=2.0)
@@ -361,103 +468,8 @@ fig.savefig("inner_RV.png", dpi=300)
 #     # save some samples on a fine orbit for plotting purposes
 #     t_period = pm.Deterministic("tPeriod", xs_phase * P_outer)
 #
-#     rho, theta = orbit_outer.get_relative_angles(t_period, parallax)
-#     rho_save_sky = pm.Deterministic("rhoSaveSky", rho)
-#     theta_save_sky = pm.Deterministic("thetaSaveSky", theta)
-#
-#     rho, theta = orbit_outer.get_relative_angles(t_data, parallax)
-#     rho_save_data = pm.Deterministic("rhoSaveData", rho)
-#     theta_save_data = pm.Deterministic("thetaSaveData", theta)
-#
-#     rvA_dense = pm.Deterministic("RVADense", get_gamma_A(t_period))
-#     rvB_dense = pm.Deterministic("RVBDense", conv * orbit_outer.get_planet_velocity(t_period)[2] +                                  gamma_outer + offset_keck)
-#
-#
-#
-# # phase inner orbit
-#
-# # plot everything ontop in a single plot
-#
-# pkw = {"marker":".", "ls":""}
-# ekw = {"marker":".", "ms":5.0, "ls":"", "elinewidth":1.2}
-#
-#
 # # nsamples = 10
 # # choices = np.random.choice(np.arange(len(trace)), size=nsamples)
-#
-# # just choose one representative sample
-# np.random.seed(43)
-# # choice = np.random.choice(np.arange(len(trace)))
-#
-# fig, ax = plt.subplots(nrows=2, sharex=True, figsize=(8,4))
-#
-# fig_sep, ax_sep = plt.subplots(nrows=4, sharex=True, figsize=(6,8))
-# fig_sky, ax_sky = plt.subplots(nrows=1, figsize=(4,4))
-#
-#
-# with model:
-#
-#     pos = map_sol3
-# #     pos = model.test_point
-#
-#     # calculate the errors for each instrument
-#     cfa_err1 = np.sqrt(cfa1[2]**2 + np.exp(2 * pos["logjittercfa"]))
-#     cfa_err2 = np.sqrt(cfa2[2]**2 + np.exp(2 * pos["logjittercfa"]))
-#
-#     keck_err1 = np.sqrt(keck1[2]**2 + np.exp(2 * pos["logjitterkeck"]))
-#     keck_err2 = np.sqrt(keck2[2]**2 + np.exp(2 * pos["logjitterkeck"]))
-#
-#     feros_err1 = np.sqrt(feros1[2]**2 + np.exp(2 * pos["logjitterferos"]))
-#     feros_err2 = np.sqrt(feros2[2]**2 + np.exp(2 * pos["logjitterferos"]))
-#
-#     dupont_err1 = np.sqrt(dupont1[2]**2 + np.exp(2 * pos["logjitterdupont"]))
-#     dupont_err2 = np.sqrt(dupont2[2]**2 + np.exp(2 * pos["logjitterdupont"]))
-#
-#
-#     ax[0].plot(xs_phase, pos["RV1Dense"])
-#     ax[1].plot(xs_phase, pos["RV2Dense"])
-#
-#     # at data locations
-#     ax[0].errorbar(get_phase(cfa1[0], pos), cfa1[1], yerr=cfa_err1, **ekw, zorder=0)
-#     ax[0].errorbar(get_phase(keck1[0], pos), keck1[1] - pos["offsetKeck"], yerr=keck_err1, **ekw, zorder=0)
-#     ax[0].errorbar(get_phase(feros1[0], pos), feros1[1] - pos["offsetFeros"], yerr=feros_err1, **ekw, zorder=0)
-#     ax[0].errorbar(get_phase(dupont1[0], pos), dupont1[1] - pos["offsetDupont"], yerr=dupont_err1, **ekw, zorder=0)
-#
-#     # at data locations
-#     ax[1].errorbar(get_phase(cfa2[0], pos), cfa2[1], yerr=cfa_err2, **ekw, zorder=0)
-#     ax[1].errorbar(get_phase(keck2[0], pos), keck2[1] - pos["offsetKeck"], yerr=keck_err2, **ekw, zorder=0)
-#     ax[1].errorbar(get_phase(feros2[0], pos), feros2[1] - pos["offsetFeros"], yerr=feros_err2, **ekw, zorder=0)
-#     ax[1].errorbar(get_phase(dupont2[0], pos), dupont2[1] - pos["offsetDupont"], yerr=dupont_err2, **ekw, zorder=0)
-#
-#     ax[1].set_xlim(0.0, 1.0)
-#     ax[0].set_ylabel(r"$v_\mathrm{Aa}$ $[\mathrm{km s}^{-1}]$")
-#     ax[1].set_ylabel(r"$v_\mathrm{Ab}$ $[\mathrm{km s}^{-1}]$")
-#     ax[1].set_xlabel("phase")
-#
-#
-#     t_pred = pos["tPeriod"]
-#     rho_pred = pos["rhoSaveSky"]
-#     theta_pred = pos["thetaSaveSky"]
-#
-#     x_pred = rho_pred * np.cos(theta_pred) # X north
-#     y_pred = rho_pred * np.sin(theta_pred) # Y east
-#
-#     ax_sky.plot(y_pred, x_pred, lw=0.8, alpha=0.7)
-#
-#
-#     ax_sep[0].plot(t_data, pos["rhoSaveData"], lw=0.8, alpha=0.7, zorder=0)
-#     ax_sep[0].plot(wds[0], wds[1], "ko")
-#
-#     ax_sep[1].plot(t_data, pos["thetaSaveData"], lw=0.8, alpha=0.7, zorder=0)
-#     ax_sep[1].plot(wds[0], wds[3], "ko")
-#
-#     ax_sep[2].plot(t_pred, pos["RVADense"], lw=0.5, alpha=0.6)
-#     ax_sep[3].plot(t_pred, pos["RVBDense"], lw=0.5, alpha=0.6)
-# # #     ax_sep[2].set_ylim(7, 10)
-#
-#     ax_sep[3].set_xlim(- 200, wds[0][-1] + 200)
-# # #     ax_sep[3].set_ylim(6.5, 8)
-#
 #
 #
 # xs = wds[1] * np.cos(wds[3]) # X is north
@@ -475,16 +487,3 @@ fig.savefig("inner_RV.png", dpi=300)
 # ax_sky.plot(0,0, "k*")
 # ax_sky.set_aspect("equal", "datalim")
 #
-# # fig.subplots_adjust(top=0.98, bottom=0.18, hspace=0.05)
-# fig.savefig("A_sb_orbit.pdf")
-# fig_sky.savefig("sky.pdf")
-# fig_sep.savefig("sep.pdf")
-#
-#
-# pm.summary(trace)
-#
-#
-# vars = ["MAa", "MAb", "MA", "MB", "Mtot", "t_periastron_inner", "gamma_outer", "a_ang_inner", "logP_inner", "omega_inner",
-#         "Omega_inner", "cos_incl_inner", "e_inner", "phi_outer", "omega_outer", "Omega_outer",
-#         "cos_incl_outer", "e_outer"]
-# pm.traceplot(trace, varnames=vars)
