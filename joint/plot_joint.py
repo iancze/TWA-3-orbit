@@ -587,16 +587,33 @@ ax_sky.set_xlabel(r"$\Delta \alpha \cos \delta\; [{}^{\prime\prime}]$")
 ax_sky.set_ylabel(r"$\Delta \delta\; [{}^{\prime\prime}]$")
 # ax_sky.invert_xaxis()
 
-cax = fig.add_axes([(lmargin + (1 - cax_frac) * ax_width/2)/xx, (bmargin + ax_height + cax_margin)/yy, cax_frac * ax_width/xx, cax_height/yy])
+cax = fig.add_axes(
+    [
+        (lmargin + (1 - cax_frac) * ax_width / 2) / xx,
+        (bmargin + ax_height + cax_margin) / yy,
+        cax_frac * ax_width / xx,
+        cax_height / yy,
+    ]
+)
 
 # load and plot the gas image here; routine in gas.py
 # frame width also set there
 plot_gas(ax_sky, cax)
 
 # set colorbar label
-cax.tick_params(axis='both', labelsize="small", labeltop=True, labelbottom=False, which='both', direction="in", bottom=False, top=True, pad=2)
-cax.xaxis.set_label_position('top') 
-cax.set_xlabel(r'$v_\mathrm{BARY} \quad {\rm[km\,s^{-1}]}$', labelpad=2)
+cax.tick_params(
+    axis="both",
+    labelsize="small",
+    labeltop=True,
+    labelbottom=False,
+    which="both",
+    direction="in",
+    bottom=False,
+    top=True,
+    pad=2,
+)
+cax.xaxis.set_label_position("top")
+cax.set_xlabel(r"$v_\mathrm{BARY} \quad {\rm[km\,s^{-1}]}$", labelpad=2)
 
 
 # plot the star
@@ -710,7 +727,6 @@ for index, row in samples.iterrows():
 
     # we can select orbits which have a higher vB[-1] than vB[0]
     # and colorize them
-
 
 fig.savefig("sep_pa.png", dpi=320)
 fig.savefig("sep_pa.pdf")
