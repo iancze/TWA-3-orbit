@@ -1,0 +1,81 @@
+name: disk
+
+out_base: output/
+
+gas: true
+species : 12CO # Possible choices: 12CO, 13CO, C18O. Future may include HCN, etc...
+transition: 2-1 # J =
+
+grid:
+  nr: 128
+  ntheta: 46 # if mirrored about the equator, total of 64
+  nphi: 1
+  r_in: 0.1 # [AU] # Inner edge of model grid
+  r_out: 160. # [AU] # Outer edge of model grid
+
+# Are there any velocity ranges of the dataset to exclude? If so, provide them here.
+# exclude: [[4.0, 7.5]]
+
+# What type of model will we be fitting? This also affects which parameters to include.
+model : nuker # choices of {standard, truncated, vertical, cavity, etc..}
+
+# parameters, either used for model synthesis or visualization. Be careful that all of these are Float64 and not Int
+parameters:
+  M_star: 0.53 # [M_sun] stellar mass
+  r_c: 8.0 # [AU] characteristic radius
+  T_10: 40.8 # [K] temperature at 10 AU
+  q: 0.01 # temperature gradient exponent
+  gamma: 2.1 # surface density gradient, negative yields holes
+  log_alpha: 1.9 # sharpness of transition (2 = smooth, 16 = sharp)
+  beta: 9.9 # gradient power law outside r_c
+  log_M_gas: -5.2 # [M_Sun] disk mass of gas
+  ksi: 0.5 # [km/s] microturbulence
+  dpc: 36.62 # [pc] distance
+  incl: 49. # [degrees] inclination
+  PA: 206.5 # [degrees] position angle
+  vel: 1.21 # [km/s]
+  mu_RA: 0.0 # [arcsec] centroid location
+  mu_DEC: 0.0 # [arcsec]
+
+# List the parameters you want fixed here.
+fix_params: ["dpc", "mu_RA", "mu_DEC"]
+
+parameter_ranges:
+  M_star: [0.2, 1.6] # [M_sun] stellar mass
+  r_c: [1., 30.] # [AU] characteristic radius
+  T_10: [10.0, 100.0] # [K] temperature at 10 AU
+  q: [0.0, 0.9] # temperature gradient exponent
+  gamma: [-4.0, 4.0] # surface density gradient 
+  log_alpha: [0.1, 1.9] # 
+  beta: [2.1, 9.9] # 
+  log_M_gas: [-4.0, -1.0] # [M_Sun] disk mass of gas
+  ksi: [0.01, 0.9] # [km/s] microturbulence
+  incl: [10., 80.] # [degrees] inclination
+  PA: [180, 240] # [degrees] position angle
+  vel: [-1.0, 4.5] # [km/s]
+
+MaxFuncEvals: 10000
+     
+
+# The HDF5 file containing the visibilities
+data_file: data.hdf5
+
+# Image setup
+size_arcsec : 5.0 # [arcsec] full width/height of image
+npix: 256
+
+# Starting positions of walkers
+pos0: pos0.npy
+
+# MCMC setup
+samples: 20
+loops: 100
+
+# Some parameters that may be helpful for making more realistic channel map plots of the model.
+# You will likely need to change these to correspond to the parameters of your observation.
+beam :
+  area: 0.28 # arcsec^2
+  rms : 0.1 # Jy/beam
+  BMAJ: 0.9 # arcsec
+  BMIN: 0.9 # arcsec
+  BPA: 1.0 # degrees east of North of the semi-major axis.
