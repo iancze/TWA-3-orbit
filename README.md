@@ -1,5 +1,38 @@
 # TWA-3-orbit
 
+## Installation 
+
+It helps to install this locally to a conda environment. In my case, I did
+
+        $ conda create --name TWA3
+        $ conda activate TWA3
+        # install all the required packages
+        $ conda install --file requirements.txt # perhaps this should be environment.yml?
+
+`corner.py` needs to be installed with pip.
+
+Since exoplanet is under heavy development, we'll install this from source. With the environment still activated, go to the `exoplanet` source directory, and `python setup.py install`. (If you're satisfied with the latest stable version, you can just install exoplanet with conda). 
+
+Then return to this directory and install the project as editable.
+
+        $ pip install -e .
+
+This should keep the whole directory structure much more organized and portable than before.
+
+The idea is that all analysis scripts will be run from the root directory of this project. E.g., 
+
+    $ python src/joint/sample.py 
+
+and not from within individual folders 
+
+    # don't do this 
+    $ cd src/joint 
+    $ python sample.py
+
+This way we are always operating from the root directory and don't have to worry about traversing up and across the folder tree.
+
+## Introduction
+
 Determining the architecture of the TWA 3 hierarchical triple system using a combination of ALMA CO 2-1 observations, radial velocity, and astrometric data. 
 
 Building up to the joint fit, we have also made fits to smaller portions of the data.
@@ -12,6 +45,28 @@ Building up to the joint fit, we have also made fits to smaller portions of the 
 6. [Done] Hierarchical triple orbit simultaneously fit with RV and astrometry for both tight inner binary and wide outer binary: inner: `parallax`, `P_A`, `a_A_ang`, `M_Ab`, `e_A`, `i_A`, `omega_Aa`, `Omega_Aa`,  outer: `P_B`, `a_B_ang`, `e_AB`, `i_AB`, `omega_A`, `Omega_A`, `gamma_AB`. `M_A` is derived from inner orbit and fed to outer orbit.  `gamma_A` is essentially the RV prediction of A, and is derived from outer orbit and fed to the inner orbit. This has 15 orbital parameters. Adding 4 RV offsets, 2 * 4 RV jitter terms, and 2 astrometric jitter terms makes it 30 parameters total.  
 7. Hierarchical triple orbit simultaneously fit including dynamical mass prior on `M_A`.
 8. Same, but now including disk orbit normal (evaluated w/ KDE from dynamical modeling) and directly calculating mutual inclinations for all angles.
+
+## Remaining orbital ambiguities 
+After completing the disk + rv + astro fits, I think there are still a few orbital ambiguities that we should consider addressing. If you want to stretch the data, I would say that we actually have leverage on all of these quantities. However, there are some tricky parts in interpreting the data that we need to be careful to consider.
+
+### i_A (inner binary inclination) > 90 or < 90
+From the inner orbit + Anthonioz point + disk-based mass on M_A, there are two degenerate solutions for i_A (below and above 90), each of which has a *slightly* different Omega value. These solutions are plotted in the ipython notebook for this fit.
+
+    incl:48.75 +\- 0.89
+    Omega:112.10 +\- 9.46
+
+    incl:131.25 +\- 0.90
+    Omega:104.44 +\- 9.41
+
+### i_disk > 90 or < 90
+In theory, we should be able to tell from the sub-mm emission alone which side of the disk is near. However, the CO emission is sufficiently faint that I'm not sure I can do this without error. There seems like there is the brightness asymmetry for the figure-8 and there is the brightness asymmetry in the C-shape. I should look at well-resolved disks like HD163296 to ascertain which side is near/far. One additional check we can do is that if the binary and disk are coplanar, then Omega_disk should match Omega_binary. 
+
+From the Nuker fit, PA_disk = 207 +/- 1 degr. This would be Omega_disk = 117 +/- degr. If we assume that the disk and binary are coplanar, then this would seem to favor the Omega_binary=112 solution (i_binary < 90). Which would suggest that the inner binary and outer tertiary are retrograde. If we instead say that these things are not coplanar, then there are several other families of solutions.
+
+### Omega_B (outer binary ascending node)
+From the direction of stellar motion, we are confident that we have broken whether i_B is < or > 90 degrees.
+
+Breaking the degeneracy of which node is the ascending (moving away from us, by our definition) rests upon the trend that the radial velocity of B is increasing over our baseline.
 
 ## A-B wide orbit
 
