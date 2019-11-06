@@ -1,362 +1,36 @@
+import arviz as az
 import corner
+import exoplanet as xo
 import matplotlib.pyplot as plt
+import pymc3 as pm
 
+import src.close.rv.model as m
+from src.constants import *
 
-# date is HJD + 2400000
+plotdir = "figures/close/rv/"
 
-fig, ax = plt.subplots(nrows=3, sharex=True, figsize=(8, 8))
+trace = pm.load_trace(directory="chains/close/rv", model=m.model)
 
-pkw = {"marker": ".", "ls": ""}
+# view summary
+df = az.summary(trace, var_names=m.all_vars)
+print(df)
 
-for d in data:
-    ax[0].plot(d["HJD"], d["RV_Aa"], **pkw)
-    ax[0].set_ylabel(r"$v_\mathrm{Aa}$ [km/s]")
+# write summary to disk
+f = open(f"{plotdir}summary.txt", "w")
+df.to_string(f)
+f.close()
 
-    ax[1].plot(d["HJD"], d["RV_Ab"], **pkw)
-    ax[1].set_ylabel(r"$v_\mathrm{Ab}$ [km/s]")
 
-    ax[2].plot(d["HJD"], d["RV_B"], **pkw)
-    ax[2].set_ylabel(r"$v_\mathrm{B}$ [km/s]")
+with az.rc_context(rc={"plot.max_subplots": 60}):
+    # autocorrelation
+    az.plot_autocorr(trace, var_names=m.sample_vars)
+    plt.savefig(f"{plotdir}autocorr.png")
 
-#     ax[1].plot(d[])
+    # make a traceplot
+    az.plot_trace(trace, var_names=m.all_vars)
+    plt.savefig(f"{plotdir}trace.png")
 
-
-# try phase folding the data for Aa and Ab
-P_A = 34.87846  # pm 0.00090 days
-# P_A = 35.245521 #
-
-pkw = {"marker": ".", "ls": ""}
-
-fig, ax = plt.subplots(nrows=2, sharex=True, figsize=(8, 6))
-
-for d in data:
-    ax[0].plot(d["HJD"] % P_A, d["RV_Aa"], **pkw)
-    ax[0].set_ylabel(r"$v_\mathrm{Aa}$ [km/s]")
-
-    ax[1].plot(d["HJD"] % P_A, d["RV_Ab"], **pkw)
-    ax[1].set_ylabel(r"$v_\mathrm{Ab}$ [km/s]")
-
-
-xs_phase = np.linspace(0, 1, num=500)
-
-
-pm.traceplot(
-    trace,
-    varnames=[
-        "logP",
-        "logKAa",
-        "logKAb",
-        "e",
-        "omega",
-        "tPeri",
-        "offsetKeck",
-        "offsetFeros",
-        "offsetDupont",
-        "logjittercfa",
-        "logjitterkeck",
-        "logjitterferos",
-        "logjitterdupont",
-    ],
-)
-
-
-with model:
-    rv1 = xo.eval_in_model(rv1_dense, map_sol)
-    rv2 = xo.eval_in_model(rv2_dense, map_sol)
-
-    fig, ax = plt.subplots(nrows=2, sharex=True)
-    ax[0].plot(xs_phase, rv1)
-    ax[1].plot(xs_phase, rv2)
-
-
-# To assess the quality of the fit, we should go and plot the fit and residuals for all of the data points individually and together.
-#
-# The phase-folding plot only really works for a fixed value of `tperi`, `P`. So, we can plot the MAP phase fold. But other than that it only makes sense to plot the orbit scatter on the actual series of points (minus any offset, too).
-
-
-pkw = {"marker": ".", "ls": ""}
-ekw = {"marker": ".", "ls": ""}
-
-
-def get_phase(dates, P, tperi):
-    return ((dates - tperi) % P) / P
-
-
-# nsamples = 10
-# choices = np.random.choice(np.arange(len(trace)), size=nsamples)
-
-# just choose one representative sample
-np.random.seed(43)
-choice = np.random.choice(np.arange(len(trace)))
-
-fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
-
-with model:
-
-    pos = trace[choice]
-
-    tperi = pos["tPeri"]
-    P = pos["P"]
-    logjit = pos["logjittercfa"]
-
-    err1 = np.sqrt(cfa1[2] ** 2 + np.exp(2 * logjit))
-    err2 = np.sqrt(cfa2[2] ** 2 + np.exp(2 * logjit))
-
-    phase1 = get_phase(cfa1[0], P, tperi)
-    rv1 = xo.eval_in_model(rv1_cfa, pos)
-    ax[0].errorbar(phase1, cfa1[1], yerr=err1, **ekw, zorder=0)
-    ax[0].plot(phase1, rv1, **pkw, zorder=1)
-
-    ax[1].axhline(0.0, color="k", lw=0.5)
-    ax[1].errorbar(phase1, cfa1[1] - rv1, yerr=err1, **ekw)
-
-    phase2 = get_phase(cfa2[0], P, tperi)
-    rv2 = xo.eval_in_model(rv2_cfa, pos)
-    ax[2].errorbar(phase2, cfa2[1], yerr=err2, **ekw, zorder=0)
-    ax[2].plot(phase2, rv2, **pkw, zorder=1)
-
-    ax[3].axhline(0.0, color="k", lw=0.5)
-    ax[3].errorbar(phase2, cfa2[1] - rv2, yerr=err2, **ekw)
-
-
-pkw = {"marker": ".", "ls": ""}
-ekw = {"marker": ".", "ls": ""}
-
-
-def get_phase(dates, P, tperi):
-    return ((dates - tperi) % P) / P
-
-
-# just choose one representative sample
-np.random.seed(41)
-choice = np.random.choice(np.arange(len(trace)))
-
-fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
-
-with model:
-
-    pos = trace[choice]
-
-    tperi = pos["tPeri"]
-    P = pos["P"]
-
-    logjit = pos["logjitterkeck"]
-
-    err1 = np.sqrt(keck1[2] ** 2 + np.exp(2 * logjit))
-    err2 = np.sqrt(keck2[2] ** 2 + np.exp(2 * logjit))
-
-    phase1 = get_phase(keck1[0], P, tperi)
-    rv1 = xo.eval_in_model(rv1_keck, pos)
-    ax[0].errorbar(phase1, keck1[1], yerr=err1, **ekw, zorder=0)
-    ax[0].plot(phase1, rv1, **pkw, zorder=1)
-
-    ax[1].axhline(0.0, color="k", lw=0.5)
-    ax[1].errorbar(phase1, keck1[1] - rv1, yerr=err1, **ekw)
-
-    phase2 = get_phase(keck2[0], P, tperi)
-    rv2 = xo.eval_in_model(rv2_keck, pos)
-    ax[2].errorbar(phase2, keck2[1], yerr=err2, **ekw, zorder=0)
-    ax[2].plot(phase2, rv2, **pkw, zorder=1)
-
-    ax[3].axhline(0.0, color="k", lw=0.5)
-    ax[3].errorbar(phase2, keck2[1] - rv2, yerr=err2, **ekw)
-
-
-pkw = {"marker": ".", "ls": ""}
-ekw = {"marker": ".", "ls": ""}
-
-
-def get_phase(dates, P, tperi):
-    return ((dates - tperi) % P) / P
-
-
-# just choose one representative sample
-np.random.seed(43)
-choice = np.random.choice(np.arange(len(trace)))
-
-fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
-
-with model:
-
-    pos = trace[choice]
-
-    tperi = pos["tPeri"]
-    P = pos["P"]
-    logjit = pos["logjitterferos"]
-
-    err1 = np.sqrt(feros1[2] ** 2 + np.exp(2 * logjit))
-    err2 = np.sqrt(feros2[2] ** 2 + np.exp(2 * logjit))
-
-    phase1 = get_phase(feros1[0], P, tperi)
-    rv1 = xo.eval_in_model(rv1_feros, pos)
-    ax[0].errorbar(phase1, feros1[1], yerr=err1, **ekw, zorder=0)
-    ax[0].plot(phase1, rv1, **pkw, zorder=1)
-
-    ax[1].axhline(0.0, color="k", lw=0.5)
-    ax[1].errorbar(phase1, feros1[1] - rv1, yerr=err1, **ekw)
-
-    phase2 = get_phase(feros2[0], P, tperi)
-    rv2 = xo.eval_in_model(rv2_feros, pos)
-    ax[2].errorbar(phase2, feros2[1], yerr=err2, **ekw, zorder=0)
-    ax[2].plot(phase2, rv2, **pkw, zorder=1)
-
-    ax[3].axhline(0.0, color="k", lw=0.5)
-    ax[3].errorbar(phase2, feros2[1] - rv2, yerr=err2, **ekw)
-
-
-pkw = {"marker": ".", "ls": ""}
-ekw = {"marker": ".", "ls": ""}
-
-
-def get_phase(dates, P, tperi):
-    return ((dates - tperi) % P) / P
-
-
-# nsamples = 10
-# choices = np.random.choice(np.arange(len(trace)), size=nsamples)
-
-# just choose one representative sample
-np.random.seed(43)
-choice = np.random.choice(np.arange(len(trace)))
-
-fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
-
-with model:
-
-    pos = trace[choice]
-
-    tperi = pos["tPeri"]
-    P = pos["P"]
-
-    logjit = pos["logjitterdupont"]
-
-    err1 = np.sqrt(dupont1[2] ** 2 + np.exp(2 * logjit))
-    err2 = np.sqrt(dupont2[2] ** 2 + np.exp(2 * logjit))
-
-    phase1 = get_phase(dupont1[0], P, tperi)
-    rv1 = xo.eval_in_model(rv1_dupont, pos)
-    ax[0].errorbar(phase1, dupont1[1], yerr=err1, **ekw, zorder=0)
-    ax[0].plot(phase1, rv1, **pkw, zorder=1)
-
-    ax[1].axhline(0.0, color="k", lw=0.5)
-    ax[1].errorbar(phase1, dupont1[1] - rv1, yerr=err1, **ekw)
-
-    phase2 = get_phase(dupont2[0], P, tperi)
-    rv2 = xo.eval_in_model(rv2_dupont, pos)
-    ax[2].errorbar(phase2, dupont2[1], yerr=err2, **ekw, zorder=0)
-    ax[2].plot(phase2, rv2, **pkw, zorder=1)
-
-    ax[3].axhline(0.0, color="k", lw=0.5)
-    ax[3].errorbar(phase2, dupont2[1] - rv2, yerr=err2, **ekw)
-
-
-# In[167]:
-
-
-# plot everything ontop in a single plot
-
-pkw = {"marker": ".", "ls": ""}
-ekw = {"marker": ".", "ms": 5.0, "ls": "", "elinewidth": 1.2}
-
-
-def get_phase(dates, pos):
-    return ((dates - pos["tPeri"]) % pos["P"]) / pos["P"]
-
-
-# nsamples = 10
-# choices = np.random.choice(np.arange(len(trace)), size=nsamples)
-
-# just choose one representative sample
-np.random.seed(43)
-choice = np.random.choice(np.arange(len(trace)))
-
-fig, ax = plt.subplots(nrows=2, sharex=True, figsize=(8, 4))
-
-with model:
-
-    pos = trace[choice]
-
-    tperi = pos["tPeri"]
-    P = pos["P"]
-
-    # calculate the errors for each instrument
-    cfa_err1 = np.sqrt(cfa1[2] ** 2 + np.exp(2 * pos["logjittercfa"]))
-    cfa_err2 = np.sqrt(cfa2[2] ** 2 + np.exp(2 * pos["logjittercfa"]))
-
-    keck_err1 = np.sqrt(keck1[2] ** 2 + np.exp(2 * pos["logjitterkeck"]))
-    keck_err2 = np.sqrt(keck2[2] ** 2 + np.exp(2 * pos["logjitterkeck"]))
-
-    feros_err1 = np.sqrt(feros1[2] ** 2 + np.exp(2 * pos["logjitterferos"]))
-    feros_err2 = np.sqrt(feros2[2] ** 2 + np.exp(2 * pos["logjitterferos"]))
-
-    dupont_err1 = np.sqrt(dupont1[2] ** 2 + np.exp(2 * pos["logjitterdupont"]))
-    dupont_err2 = np.sqrt(dupont2[2] ** 2 + np.exp(2 * pos["logjitterdupont"]))
-
-    # plot RV1 model
-    ax[0].axhline(pos["gamma"], lw=1.0, color="k", ls=":")
-    ax[0].plot(xs_phase, pos["RV1Dense"], zorder=-1)
-
-    # at data locations
-    ax[0].errorbar(get_phase(cfa1[0], pos), cfa1[1], yerr=cfa_err1, **ekw, zorder=0)
-    ax[0].errorbar(
-        get_phase(keck1[0], pos),
-        keck1[1] - pos["offsetKeck"],
-        yerr=keck_err1,
-        **ekw,
-        zorder=0
-    )
-    ax[0].errorbar(
-        get_phase(feros1[0], pos),
-        feros1[1] - pos["offsetFeros"],
-        yerr=feros_err1,
-        **ekw,
-        zorder=0
-    )
-    ax[0].errorbar(
-        get_phase(dupont1[0], pos),
-        dupont1[1] - pos["offsetDupont"],
-        yerr=dupont_err1,
-        **ekw,
-        zorder=0
-    )
-
-    # plot RV2
-    ax[1].axhline(pos["gamma"], lw=1.0, color="k", ls=":")
-    ax[1].plot(xs_phase, pos["RV2Dense"], zorder=-1)
-
-    # at data locations
-    ax[1].errorbar(get_phase(cfa2[0], pos), cfa2[1], yerr=cfa_err2, **ekw, zorder=0)
-    ax[1].errorbar(
-        get_phase(keck2[0], pos),
-        keck2[1] - pos["offsetKeck"],
-        yerr=keck_err2,
-        **ekw,
-        zorder=0
-    )
-    ax[1].errorbar(
-        get_phase(feros2[0], pos),
-        feros2[1] - pos["offsetFeros"],
-        yerr=feros_err2,
-        **ekw,
-        zorder=0
-    )
-    ax[1].errorbar(
-        get_phase(dupont2[0], pos),
-        dupont2[1] - pos["offsetDupont"],
-        yerr=dupont_err2,
-        **ekw,
-        zorder=0
-    )
-
-    ax[1].set_xlim(0.0, 1.0)
-    ax[0].set_ylabel(r"$v_\mathrm{Aa}$ $[\mathrm{km s}^{-1}]$")
-    ax[1].set_ylabel(r"$v_\mathrm{Ab}$ $[\mathrm{km s}^{-1}]$")
-    ax[1].set_xlabel("phase")
-
-fig.subplots_adjust(top=0.98, bottom=0.18, hspace=0.05)
-fig.savefig("A_sb_orbit.pdf")
-
-
+# make a nice corner plot of the variables we care about
 samples = pm.trace_to_dataframe(
     trace,
     varnames=[
@@ -366,6 +40,7 @@ samples = pm.trace_to_dataframe(
         "e",
         "gamma",
         "omega",
+        "tPeri",
         "offsetKeck",
         "offsetFeros",
         "offsetDupont",
@@ -376,4 +51,186 @@ samples = pm.trace_to_dataframe(
     ],
 )
 samples["omega"] /= deg
-corner.corner(samples)
+fig = corner.corner(samples)
+fig.savefig(f"{plotdir}corner.png")
+
+
+# set up the figure dimensions and plot the data
+lmargin = 0.5
+rmargin = lmargin
+bmargin = 0.4
+tmargin = 0.05
+mmargin = 0.07
+mmmargin = 0.15
+
+ax_height = 1.0
+ax_r_height = 0.4
+
+# \textwidth=7.1in
+# \columnsep=0.3125in
+# column width = (7.1 - 0.3125)/2 = 3.393
+
+xx = 3.393
+ax_width = xx - lmargin - rmargin
+
+yy = bmargin + tmargin + 2 * mmargin + mmmargin + 2 * ax_height + 2 * ax_r_height
+
+hkw = {"lw": 1.0, "color": "0.4", "ls": ":"}
+pkw = {"ls": "-", "lw": 1.5, "color": "k"}
+ekw = {"marker": ".", "ms": 3.0, "ls": "", "elinewidth": 0.8, "zorder": 20}
+
+
+# open the model context and add new variables
+# that will be useful for plotting
+
+# only plot one sample, since the datapoints do not scatter well in this space
+# do these as eval_in_model
+# samples = xo.get_samples_from_trace(trace, size=10)
+
+
+fig = plt.figure(figsize=(xx, yy))
+
+ax1 = fig.add_axes(
+    [lmargin / xx, 1 - (tmargin + ax_height) / yy, ax_width / xx, ax_height / yy]
+)
+
+ax1_r = fig.add_axes(
+    [
+        lmargin / xx,
+        1 - (tmargin + mmargin + ax_height + ax_r_height) / yy,
+        ax_width / xx,
+        ax_r_height / yy,
+    ]
+)
+ax1_r.axhline(0.0, **hkw)
+
+ax2 = fig.add_axes(
+    [
+        lmargin / xx,
+        (bmargin + mmargin + ax_r_height) / yy,
+        ax_width / xx,
+        ax_height / yy,
+    ]
+)
+#
+ax2_r = fig.add_axes([lmargin / xx, bmargin / yy, ax_width / xx, ax_r_height / yy])
+ax2_r.axhline(0.0, **hkw)
+
+color_dict = {"CfA": "C0", "Keck": "C1", "FEROS": "C2", "du Pont": "C3"}
+xs_phase = np.linspace(0, 1, num=500)
+
+# define new Theano variables to get what we want to plot
+with m.model:
+    ts_phases = xs_phase * m.P + m.t_periastron  # new theano var
+    rv1, rv2 = m.get_RVs(ts_phases, ts_phases, 0.0)
+
+    # get the predictions at the times of the data with *no* offset
+    rv_cfa0 = m.get_RVs(m.cfa1[0], m.cfa2[0], 0.0)
+    rv_keck0 = m.get_RVs(m.keck1[0], m.keck2[0], 0.0)
+    rv_feros0 = m.get_RVs(m.feros1[0], m.feros2[0], 0.0)
+    rv_dupont0 = m.get_RVs(m.dupont1[0], m.dupont2[0], 0.0)
+
+
+# data, then phase them, then plot them.
+
+
+def phase_and_plot(data, model, a, a_r, label):
+    """
+    Calculate inner orbit radial velocities and residuals for a given dataset and star.
+
+    Args:
+        data: tuple containing (date, rv, err)
+        model: model rvs evaluated at date (with no offset)
+        a: primary matplotlib axes
+        a_r: residual matplotlib axes
+        label: instrument that acquired data
+
+    Returns:
+        None
+    """
+
+    phase = get_phase(data[0])
+
+    # evaluate the model with the current parameter settings
+    offset = offset_dict[label]
+    d = data[1] - offset
+    resid = d - model
+    err = np.sqrt(data[2] ** 2 + np.exp(2 * err_dict[label]))
+
+    color = color_dict[label]
+    a.errorbar(phase, d, yerr=err, label=label, **ekw, color=color)
+    a_r.errorbar(phase, resid, yerr=err, **ekw, color=color)
+
+
+for sample in xo.get_samples_from_trace(trace, size=1):
+
+    # we'll want to cache these functions when we evaluate many samples
+    rv1_m = xo.eval_in_model(rv1, point=sample, model=m.model)
+    rv2_m = xo.eval_in_model(rv2, point=sample, model=m.model)
+
+    ax1.plot(xs_phase, rv1_m, **pkw)
+    ax2.plot(xs_phase, rv2_m, **pkw)
+
+    err_dict = {
+        "CfA": sample["logjittercfa"],
+        "Keck": sample["logjitterkeck"],
+        "FEROS": sample["logjitterferos"],
+        "du Pont": sample["logjitterdupont"],
+    }
+    offset_dict = {
+        "CfA": 0.0,
+        "Keck": sample["offsetKeck"],
+        "FEROS": sample["offsetFeros"],
+        "du Pont": sample["offsetDupont"],
+    }
+
+    # create a phasing function local to these sampled values of
+    # t_periastron and period
+    def get_phase(dates):
+        return ((dates - sample["tPeri"]) % sample["P"]) / sample["P"]
+
+    rv_cfa0_1, rv_cfa0_2 = xo.eval_in_model(rv_cfa0, point=sample, model=m.model)
+    rv_keck0_1, rv_keck0_2 = xo.eval_in_model(rv_keck0, point=sample, model=m.model)
+    rv_feros0_1, rv_feros0_2 = xo.eval_in_model(rv_feros0, point=sample, model=m.model)
+    rv_dupont0_1, rv_dupont0_2 = xo.eval_in_model(
+        rv_dupont0, point=sample, model=m.model
+    )
+
+    # Plot the data and residuals for this sample
+    phase_and_plot(m.cfa1, rv_cfa0_1, ax1, ax1_r, "CfA")
+    phase_and_plot(m.keck1, rv_keck0_1, ax1, ax1_r, "Keck")
+    phase_and_plot(m.feros1, rv_feros0_1, ax1, ax1_r, "FEROS")
+    phase_and_plot(m.dupont1, rv_dupont0_1, ax1, ax1_r, "du Pont")
+
+    phase_and_plot(m.cfa2, rv_cfa0_2, ax2, ax2_r, "CfA")
+    phase_and_plot(m.keck2, rv_keck0_2, ax2, ax2_r, "Keck")
+    phase_and_plot(m.feros2, rv_feros0_2, ax2, ax2_r, "FEROS")
+    phase_and_plot(m.dupont2, rv_dupont0_2, ax2, ax2_r, "du Pont")
+
+
+ax1.legend(
+    loc="upper left",
+    fontsize="xx-small",
+    labelspacing=0.5,
+    handletextpad=0.2,
+    borderpad=0.4,
+    borderaxespad=1.0,
+)
+
+ax1.set_ylabel(r"$v_\mathrm{Aa}$ [$\mathrm{km s}^{-1}$]", labelpad=0)
+ax1_r.set_ylabel(r"$O-C$", labelpad=-1)
+
+ax2.set_ylabel(r"$v_\mathrm{Ab}$ [$\mathrm{km s}^{-1}$]", labelpad=-5)
+ax2_r.set_ylabel(r"$O-C$", labelpad=-2)
+ax2_r.set_xlabel("phase")
+
+ax = [ax1, ax1_r, ax2, ax2_r]
+for a in ax:
+    a.set_xlim(0, 1)
+
+ax1.xaxis.set_ticklabels([])
+ax1_r.xaxis.set_ticklabels([])
+ax2.xaxis.set_ticklabels([])
+
+# fig.savefig(f"{outdir}inner_RV.png")
+fig.savefig(f"{plotdir}RV.pdf")

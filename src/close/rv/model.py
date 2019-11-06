@@ -2,6 +2,7 @@ import astropy
 import exoplanet as xo
 import numpy as np
 import pandas as pd
+import re
 
 # load the exoplanet part
 import pymc3 as pm
@@ -13,9 +14,7 @@ from astropy.time import Time
 from exoplanet.distributions import Angle
 
 import src.notebook_setup  # run the DFM commands
-
-deg = np.pi / 180.0  # radians / degree
-yr = 365.25  # days / year
+from src.constants import *
 
 
 def get_arrays(asciiTable, errDict=None, jitter=False):
@@ -213,12 +212,16 @@ with pm.Model() as model:
         sd=get_err(dupont2[2], logjit_dupont),
     )
 
-    # Compute the phased RV signal
-    # phased since periastron
+# iterate through the list of free_RVs in the model to get things like
+# ['logKAa_interval__', etc...] then use a regex to strip away
+# the transformations (in this case, _interval__ and _angle__)
+# \S corresponds to any character that is not whitespace
+# https://docs.python.org/3/library/re.html
+sample_vars = [re.sub("_\S*__", "", var.name) for var in model.free_RVs]
 
-    t_dense = xs_phase * P + t_periastron
+all_vars = [
+    var.name
+    for var in model.unobserved_RVs
+    if ("_interval__" not in var.name) and ("_angle__" not in var.name)
+]
 
-    rv1, rv2 = get_RVs(t_dense, t_dense, 0.0)
-
-    rv1_dense = pm.Deterministic("RV1Dense", rv1)
-    rv2_dense = pm.Deterministic("RV2Dense", rv2)

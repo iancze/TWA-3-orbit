@@ -10,6 +10,7 @@ It helps to install this locally to a conda environment. In my case, I did
         $ conda install --file requirements.txt # perhaps this should be environment.yml?
 
 `corner.py` needs to be installed with pip.
+`arviz` needs to be installed from conda-forge 
 
 Since exoplanet is under heavy development, we'll install this from source. With the environment still activated, go to the `exoplanet` source directory, and `python setup.py install`. (If you're satisfied with the latest stable version, you can just install exoplanet with conda). 
 
