@@ -7,77 +7,12 @@ import re
 # load the exoplanet part
 import pymc3 as pm
 import theano.tensor as tt
-from astropy import constants
-from astropy import units as u
-from astropy.io import ascii
-from astropy.time import Time
+
 from exoplanet.distributions import Angle
 
 import src.notebook_setup  # run the DFM commands
 from src.constants import *
-
-
-def get_arrays(asciiTable, errDict=None, jitter=False):
-    """
-    Reformat ascii tables into pure numpy arrays of the right dimension.
-    """
-
-    output = []
-
-    for star in ["Aa", "Ab"]:
-
-        # get the RVs
-        rv = asciiTable["RV_" + star]
-
-        if type(rv) is astropy.table.column.MaskedColumn:
-            mask = ~rv.mask  # values we want to keep when indexing
-        else:
-            mask = np.ones(len(rv), dtype="bool")
-
-        rv = np.ascontiguousarray(rv[mask])
-        date = np.ascontiguousarray(asciiTable["HJD"][mask])
-
-        if errDict is None:
-            err = np.ascontiguousarray(asciiTable["sigma_" + star][mask])
-        else:
-            err = np.ones(len(date), dtype=np.float64) * errDict[star]
-
-        if jitter:
-            err = (
-                np.ones(len(date), dtype=np.float64) * 0.1
-            )  # [km/s] assume a small error, since we'll infer.
-
-        assert len(date) == len(rv), "date - rv length mismatch"
-        assert len(date) == len(err), "date - err length mismatch"
-
-        tup = (date, rv, err)
-
-        output.append(tup)
-
-    return output
-
-
-jitter = True  # Do this to infer w/ jitter
-datadir = "data/close/"
-
-# load all the data
-data_cfa = ascii.read(f"{datadir}cfa.dat")
-# cfa errors are provided in table
-cfa1, cfa2 = get_arrays(data_cfa, jitter=jitter)
-
-data_keck = ascii.read(f"{datadir}keck.dat", format="tab", fill_values=[("X", 0)])
-err_keck = {"Aa": 0.63, "Ab": 0.85, "B": 0.59}  # km/s
-keck1, keck2 = get_arrays(data_keck, err_keck, jitter=jitter)
-
-data_feros = ascii.read(f"{datadir}feros.dat")
-err_feros = {"Aa": 2.61, "Ab": 3.59, "B": 2.60}  # km/s
-feros1, feros2 = get_arrays(data_feros, err_feros, jitter=jitter)
-
-data_dupont = ascii.read(f"{datadir}dupont.dat", fill_values=[("X", 0)])
-err_dupont = {"Aa": 1.46, "Ab": 2.34, "B": 3.95}  # km/s
-dupont1, dupont2 = get_arrays(data_dupont, err_dupont, jitter=jitter)
-
-data = [data_cfa, data_keck, data_feros, data_dupont]
+import src.data as d
 
 with pm.Model() as model:
 
@@ -148,10 +83,10 @@ with pm.Model() as model:
 
     # expects m/s
     # dates are the first entry in each tuple of (date, rv, err)
-    rv1_cfa, rv2_cfa = get_RVs(cfa1[0], cfa2[0], 0.0)
-    rv1_keck, rv2_keck = get_RVs(keck1[0], keck2[0], offset_keck)
-    rv1_feros, rv2_feros = get_RVs(feros1[0], feros2[0], offset_feros)
-    rv1_dupont, rv2_dupont = get_RVs(dupont1[0], dupont2[0], offset_dupont)
+    rv1_cfa, rv2_cfa = get_RVs(d.cfa1[0], d.cfa2[0], 0.0)
+    rv1_keck, rv2_keck = get_RVs(d.keck1[0], d.keck2[0], offset_keck)
+    rv1_feros, rv2_feros = get_RVs(d.feros1[0], d.feros2[0], offset_feros)
+    rv1_dupont, rv2_dupont = get_RVs(d.dupont1[0], d.dupont2[0], offset_dupont)
 
     logjit_cfa = pm.Uniform(
         "logjittercfa", lower=-5.0, upper=np.log(10), testval=np.log(1.0)
@@ -176,40 +111,46 @@ with pm.Model() as model:
 
     # define the likelihoods
     pm.Normal(
-        "cfaRV1Obs", mu=rv1_cfa, observed=cfa1[1], sd=get_err(cfa1[2], logjit_cfa)
+        "cfaRV1Obs", mu=rv1_cfa, observed=d.cfa1[1], sd=get_err(d.cfa1[2], logjit_cfa)
     )
     pm.Normal(
-        "cfaRV2Obs", mu=rv2_cfa, observed=cfa2[1], sd=get_err(cfa2[2], logjit_cfa)
+        "cfaRV2Obs", mu=rv2_cfa, observed=d.cfa2[1], sd=get_err(d.cfa2[2], logjit_cfa)
     )
     pm.Normal(
-        "keckRV1Obs", mu=rv1_keck, observed=keck1[1], sd=get_err(keck1[2], logjit_keck)
+        "keckRV1Obs",
+        mu=rv1_keck,
+        observed=d.keck1[1],
+        sd=get_err(d.keck1[2], logjit_keck),
     )
     pm.Normal(
-        "keckRV2Obs", mu=rv2_keck, observed=keck2[1], sd=get_err(keck2[2], logjit_keck)
+        "keckRV2Obs",
+        mu=rv2_keck,
+        observed=d.keck2[1],
+        sd=get_err(d.keck2[2], logjit_keck),
     )
     pm.Normal(
         "ferosRV1Obs",
         mu=rv1_feros,
-        observed=feros1[1],
-        sd=get_err(feros1[2], logjit_feros),
+        observed=d.feros1[1],
+        sd=get_err(d.feros1[2], logjit_feros),
     )
     pm.Normal(
         "ferosRV2Obs",
         mu=rv2_feros,
-        observed=feros2[1],
-        sd=get_err(feros2[2], logjit_feros),
+        observed=d.feros2[1],
+        sd=get_err(d.feros2[2], logjit_feros),
     )
     pm.Normal(
         "dupontRV1Obs",
         mu=rv1_dupont,
-        observed=dupont1[1],
-        sd=get_err(dupont1[2], logjit_dupont),
+        observed=d.dupont1[1],
+        sd=get_err(d.dupont1[2], logjit_dupont),
     )
     pm.Normal(
         "dupontRV2Obs",
         mu=rv2_dupont,
-        observed=dupont2[1],
-        sd=get_err(dupont2[2], logjit_dupont),
+        observed=d.dupont2[1],
+        sd=get_err(d.dupont2[2], logjit_dupont),
     )
 
 # iterate through the list of free_RVs in the model to get things like

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pymc3 as pm
 
 import src.close.rv.model as m
+import src.data as d
 from src.constants import *
 
 plotdir = "figures/close/rv/"
@@ -125,10 +126,10 @@ with m.model:
     rv1, rv2 = m.get_RVs(ts_phases, ts_phases, 0.0)
 
     # get the predictions at the times of the data with *no* offset
-    rv_cfa0 = m.get_RVs(m.cfa1[0], m.cfa2[0], 0.0)
-    rv_keck0 = m.get_RVs(m.keck1[0], m.keck2[0], 0.0)
-    rv_feros0 = m.get_RVs(m.feros1[0], m.feros2[0], 0.0)
-    rv_dupont0 = m.get_RVs(m.dupont1[0], m.dupont2[0], 0.0)
+    rv_cfa0 = m.get_RVs(d.cfa1[0], d.cfa2[0], 0.0)
+    rv_keck0 = m.get_RVs(d.keck1[0], d.keck2[0], 0.0)
+    rv_feros0 = m.get_RVs(d.feros1[0], d.feros2[0], 0.0)
+    rv_dupont0 = m.get_RVs(d.dupont1[0], d.dupont2[0], 0.0)
 
 
 # data, then phase them, then plot them.
@@ -197,15 +198,15 @@ for sample in xo.get_samples_from_trace(trace, size=1):
     )
 
     # Plot the data and residuals for this sample
-    phase_and_plot(m.cfa1, rv_cfa0_1, ax1, ax1_r, "CfA")
-    phase_and_plot(m.keck1, rv_keck0_1, ax1, ax1_r, "Keck")
-    phase_and_plot(m.feros1, rv_feros0_1, ax1, ax1_r, "FEROS")
-    phase_and_plot(m.dupont1, rv_dupont0_1, ax1, ax1_r, "du Pont")
+    phase_and_plot(d.cfa1, rv_cfa0_1, ax1, ax1_r, "CfA")
+    phase_and_plot(d.keck1, rv_keck0_1, ax1, ax1_r, "Keck")
+    phase_and_plot(d.feros1, rv_feros0_1, ax1, ax1_r, "FEROS")
+    phase_and_plot(d.dupont1, rv_dupont0_1, ax1, ax1_r, "du Pont")
 
-    phase_and_plot(m.cfa2, rv_cfa0_2, ax2, ax2_r, "CfA")
-    phase_and_plot(m.keck2, rv_keck0_2, ax2, ax2_r, "Keck")
-    phase_and_plot(m.feros2, rv_feros0_2, ax2, ax2_r, "FEROS")
-    phase_and_plot(m.dupont2, rv_dupont0_2, ax2, ax2_r, "du Pont")
+    phase_and_plot(d.cfa2, rv_cfa0_2, ax2, ax2_r, "CfA")
+    phase_and_plot(d.keck2, rv_keck0_2, ax2, ax2_r, "Keck")
+    phase_and_plot(d.feros2, rv_feros0_2, ax2, ax2_r, "FEROS")
+    phase_and_plot(d.dupont2, rv_dupont0_2, ax2, ax2_r, "du Pont")
 
 
 ax1.legend(
