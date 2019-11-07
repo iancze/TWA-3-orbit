@@ -4,7 +4,7 @@
 
 It helps to install this locally to a conda environment. In my case, I did
 
-        $ conda create --name TWA3
+        $ conda create --name TWA3 python=3.6
         $ conda activate TWA3
         # install all the required packages
         $ conda install --file requirements.txt # perhaps this should be environment.yml?
