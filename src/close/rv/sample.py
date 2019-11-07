@@ -1,15 +1,19 @@
 import pymc3 as pm
 import exoplanet as xo
-from src.close.rv.model import model
 
-with model:
-    map_sol = xo.optimize()
+import src.close.rv.model as m
 
-with model:
+# with m.model:
+#     map_sol = xo.optimize(vars=[m.logKAa, m.logKAb, m.P, m.t_periastron, m.omega])
+#     map_sol1 = xo.optimize(start=map_sol)
+
+# print(map_sol1)
+
+with m.model:
     trace = pm.sample(
         tune=2500,
         draws=3000,
-        start=map_sol,
+        # start=map_sol1,
         chains=4,
         step=xo.get_dense_nuts_step(target_accept=0.9),
     )
