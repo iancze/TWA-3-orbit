@@ -46,8 +46,9 @@ with pm.Model() as model:
 
     gamma = pm.Uniform("gamma", lower=0, upper=20, testval=10.1)
 
+    # relative to jd0
     t_periastron = pm.Uniform(
-        "tPeri", lower=52690.0, upper=52720.0, testval=52704.55
+        "tPeri", lower=1130.0, upper=1180.0, testval=1145.0
     )  # + 2400000 days
 
     orbit = xo.orbits.KeplerianOrbit(
@@ -89,16 +90,16 @@ with pm.Model() as model:
     rv1_dupont, rv2_dupont = get_RVs(d.dupont1[0], d.dupont2[0], offset_dupont)
 
     logjit_cfa = pm.Uniform(
-        "logjittercfa", lower=-5.0, upper=np.log(10), testval=np.log(1.0)
+        "logjittercfa", lower=-5.0, upper=np.log(5), testval=np.log(1.0)
     )
     logjit_keck = pm.Uniform(
-        "logjitterkeck", lower=-5.0, upper=np.log(10), testval=np.log(1.0)
+        "logjitterkeck", lower=-5.0, upper=np.log(5), testval=np.log(1.0)
     )
     logjit_feros = pm.Uniform(
-        "logjitterferos", lower=-5.0, upper=np.log(10), testval=np.log(1.0)
+        "logjitterferos", lower=-5.0, upper=np.log(5), testval=np.log(1.0)
     )
     logjit_dupont = pm.Uniform(
-        "logjitterdupont", lower=-5.0, upper=np.log(10), testval=np.log(1.0)
+        "logjitterdupont", lower=-5.0, upper=np.log(5), testval=np.log(1.0)
     )
     jit_cfa = pm.Deterministic("jitCfa", tt.exp(logjit_cfa))
     jit_keck = pm.Deterministic("jitKeck", tt.exp(logjit_keck))

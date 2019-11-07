@@ -11,3 +11,6 @@ au_to_R_sun = (constants.au / constants.R_sun).value
 # and from v_r = - v_Z
 output_units = u.km / u.s
 conv = -(1 * u.R_sun / u.day).to(output_units).value
+
+# the reference epoch to subtract from all dates
+jd0 = 2451545.0  # Jan 1st, 2000, 12pm noon
