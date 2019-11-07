@@ -27,7 +27,7 @@ with pm.Model() as model:
     a = pm.Deterministic("a", 1e-3 * a_ang / parallax)  # au
 
     logP = pm.Uniform(
-        "logP", lower=0, upper=np.log(50.0), testval=np.log(34.87846)
+        "logP", lower=np.log(20.0), upper=np.log(50.0), testval=np.log(34.87846)
     )  # days
     P = pm.Deterministic("P", tt.exp(logP))
 
@@ -48,7 +48,7 @@ with pm.Model() as model:
     MAb = pm.Normal("MAb", mu=0.3, sd=0.5)  # solar masses
 
     t_periastron = pm.Uniform(
-        "tPeri", lower=52690.0, upper=52720.0, testval=52704.55
+        "tPeri", lower=1130.0, upper=1170.0, testval=1159.00
     )  # + 2400000 days
 
     orbit = xo.orbits.KeplerianOrbit(
@@ -127,10 +127,16 @@ with pm.Model() as model:
         "cfaRV2Obs", mu=rv2_cfa, observed=d.cfa2[1], sd=get_err(d.cfa2[2], logjit_cfa)
     )
     pm.Normal(
-        "keckRV1Obs", mu=rv1_keck, observed=d.keck1[1], sd=get_err(d.keck1[2], logjit_keck)
+        "keckRV1Obs",
+        mu=rv1_keck,
+        observed=d.keck1[1],
+        sd=get_err(d.keck1[2], logjit_keck),
     )
     pm.Normal(
-        "keckRV2Obs", mu=rv2_keck, observed=d.keck2[1], sd=get_err(d.keck2[2], logjit_keck)
+        "keckRV2Obs",
+        mu=rv2_keck,
+        observed=d.keck2[1],
+        sd=get_err(d.keck2[2], logjit_keck),
     )
     pm.Normal(
         "ferosRV1Obs",

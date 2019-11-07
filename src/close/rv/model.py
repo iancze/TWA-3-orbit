@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pymc3 as pm
 import theano
+
 # load the exoplanet part
 import theano.tensor as tt
 from exoplanet.distributions import Angle
@@ -34,7 +35,7 @@ with pm.Model() as model:
     KAb = pm.Deterministic("KAb", tt.exp(logKAb))
 
     logP = pm.Uniform(
-        "logP", lower=0, upper=np.log(50.0), testval=np.log(34.87846)
+        "logP", lower=np.log(20.0), upper=np.log(50.0), testval=np.log(34.87846)
     )  # days
 
     P = pm.Deterministic("P", tt.exp(logP))
@@ -47,7 +48,7 @@ with pm.Model() as model:
 
     # relative to jd0
     t_periastron = pm.Uniform(
-        "tPeri", lower=1130.0, upper=1180.0, testval=1145.0
+        "tPeri", lower=1130.0, upper=1180.0, testval=1159.0
     )  # + 2400000 days
 
     orbit = xo.orbits.KeplerianOrbit(
