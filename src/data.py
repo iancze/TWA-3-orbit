@@ -31,7 +31,7 @@ def get_arrays(asciiTable, errDict=None, jitter=False):
             mask = np.ones(len(rv), dtype="bool")
 
         rv = np.ascontiguousarray(rv[mask])
-        date = np.ascontiguousarray(asciiTable["HJD"][mask])
+        date = np.ascontiguousarray(asciiTable["HJD"][mask]) + 2400000 - jd0
 
         if errDict is None:
             err = np.ascontiguousarray(asciiTable["sigma_" + star][mask])
@@ -88,7 +88,7 @@ theta_err = int_data["pa_err"][0] * deg  # radians
 anthonioz = (astro_jd, rho_data, rho_err, theta_data, theta_err)
 
 
-# load the astrometry for the wide orbit
+# load the wide orbit astrometric dataset
 data = ascii.read(
     f"{widedir}visual_data_besselian.csv", format="csv", fill_values=[("X", "0")]
 )

@@ -1,4 +1,4 @@
 {
     "python.formatting.provider": "black",
-    "python.pythonPath": "/Users/ian/.miniconda3/envs/TWA3/bin/python"
+    "python.pythonPath": "/Users/ianczekala/.build/miniconda3/envs/TWA3/bin/python"
 }

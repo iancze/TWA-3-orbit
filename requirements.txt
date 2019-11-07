@@ -3,7 +3,7 @@ scipy
 matplotlib
 astropy
 pandas
-arviz
 theano
-corner
 pymc3
+corner
+arviz

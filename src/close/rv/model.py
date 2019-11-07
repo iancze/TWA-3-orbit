@@ -1,18 +1,17 @@
+import re
+
 import astropy
 import exoplanet as xo
 import numpy as np
 import pandas as pd
-import re
-
-# load the exoplanet part
 import pymc3 as pm
+import theano
+# load the exoplanet part
 import theano.tensor as tt
-
 from exoplanet.distributions import Angle
 
-import src.notebook_setup  # run the DFM commands
-from src.constants import *
 import src.data as d
+from src.constants import *
 
 with pm.Model() as model:
 
@@ -166,4 +165,3 @@ all_vars = [
     for var in model.unobserved_RVs
     if ("_interval__" not in var.name) and ("_angle__" not in var.name)
 ]
-
