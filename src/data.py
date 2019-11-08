@@ -112,15 +112,19 @@ theta_err = np.ascontiguousarray(data["PA_err"] * deg)  # radians
 
 wds = (jds, rho_data, rho_err, theta_data, theta_err)
 
-
 # load the disk constraints
 flatchain = np.load(f"{diskdir}flatchain.npy")
-mass_samples = flatchain[:, 0]
-incl_samples = flatchain[:, 9] / deg
-Omega_samples = flatchain[:, 10] / deg
+disk_samples = flatchain[:, [0,9,10]] 
+disk_samples[:,2] -= 90.0 # convert conventions 
+disk_samples[:,[1,2]] *= deg # convert *to* radians
+mass_samples, incl_samples, Omega_samples = disk_samples.T
 
 disk_properties = {
     "MA": (np.mean(mass_samples), np.std(mass_samples)),
     "incl": (np.mean(incl_samples), np.std(incl_samples)),
     "Omega": (np.mean(Omega_samples), np.std(Omega_samples)),
 }
+
+# can we evaluate the multivariate normal approximation to these correlations?
+disk_mu = np.mean(disk_samples, axis=0)
+disk_cov = np.cov(disk_samples, rowvar=False)

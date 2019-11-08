@@ -7,7 +7,13 @@ It helps to install this locally to a conda environment. In my case, I did
         $ conda create --name TWA3 python=3.6
         $ conda activate TWA3
         # install all the required packages
-        $ conda install --file requirements.txt # perhaps this should be environment.yml?
+        $ conda install --file requirements.txt # should work in principle, but...
+
+I found that with the Mac OSX upgrade to catalina, existing theano installs were messed up. I needed to completely reinstall anaconda and allow theano and pymc3 to be installed from the 
+    
+        $ python setup.py install
+
+done inside of the `exoplanet` repo, rather than pre-installing these things with conda. This could also have been due to an issue with XCODE needing to be reinstalled, and then `exoplanet` needing to be reinstalled on top of that.
 
 `corner.py` needs to be installed with pip.
 `arviz` needs to be installed from pip too.
@@ -63,6 +69,8 @@ From the inner orbit + Anthonioz point + disk-based mass on M_A, there are two d
 In theory, we should be able to tell from the sub-mm emission alone which side of the disk is near. However, the CO emission is sufficiently faint that I'm not sure I can do this without error. There seems like there is the brightness asymmetry for the figure-8 and there is the brightness asymmetry in the C-shape. I should look at well-resolved disks like HD163296 to ascertain which side is near/far. One additional check we can do is that if the binary and disk are coplanar, then Omega_disk should match Omega_binary. 
 
 From the Nuker fit, PA_disk = 207 +/- 1 degr. This would be Omega_disk = 117 +/- degr. If we assume that the disk and binary are coplanar, then this would seem to favor the Omega_binary=112 solution (i_binary < 90). Which would suggest that the inner binary and outer tertiary are retrograde. If we instead say that these things are not coplanar, then there are several other families of solutions.
+
+I split these up into two families, the i < 90 and i > 90. I also flipped the disk to match the same inclination. Technically there is an alternate solution to this which has the disk != star signs of inclination, but given that the inclinations are so close, I think this is a fairly pathalogical case. The question really is whether the i < 90 inner binary solution gives a substantially more coplanar fit than the i > 90, because this will be used to compare to the outer binary orientation. Doing this fit, the answer is that both solutions appear to be coplanar. There is enough ambiguity in the Omega_inner that this permits coplanar solutions < 10 mutual inclination between disk and inner binary.
 
 ### Omega_B (outer binary ascending node)
 From the direction of stellar motion, we are confident that we have broken whether i_B is < or > 90 degrees.
