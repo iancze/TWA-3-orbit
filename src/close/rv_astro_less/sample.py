@@ -3,11 +3,11 @@ import exoplanet as xo
 
 import src.close.rv_astro_less.model as m
 
-with m.model:
-    map_sol = xo.optimize(vars=[m.a_ang, m.MAb, m.incl])
-    print(map_sol) 
-    map_sol1 = xo.optimize(start=map_sol, vars=[m.incl, m.Omega])
-    print(map_sol1)
+# with m.model:
+#     map_sol = xo.optimize(vars=[m.a_ang, m.MAb, m.incl])
+#     print(map_sol)
+#     map_sol1 = xo.optimize(start=map_sol, vars=[m.incl, m.Omega])
+#     print(map_sol1)
 
 
 with m.model:
@@ -18,16 +18,6 @@ with m.model:
         chains=4,
         step=xo.get_dense_nuts_step(target_accept=0.9),
     )
-
-# with m.model:
-#     trace = pm.sample(
-#         tune=10,
-#         # draws=3000,
-#         # start=map_sol,
-#         chains=4,
-#         discard_tuned_samples=False,
-#         step=xo.get_dense_nuts_step(target_accept=0.9),
-#     )
 
 
 # save the samples as a pymc3 object

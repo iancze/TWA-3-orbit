@@ -35,18 +35,7 @@ with az.rc_context(rc={"plot.max_subplots": 80}):
 # make a nice corner plot of the variables we care about
 samples = pm.trace_to_dataframe(
     trace,
-    varnames=[
-        "MAa",
-        "MAb",
-        "a",
-        "P",
-        "e",
-        "gamma",
-        "incl",
-        "omega",
-        "Omega",
-        "tPeri"
-    ],
+    varnames=["MAa", "MAb", "a", "P", "e", "gamma", "incl", "omega", "Omega", "tPeri"],
 )
 samples["incl"] /= deg
 samples["omega"] /= deg
@@ -72,7 +61,7 @@ with m.model:
     rv_dupont0 = m.get_RVs(d.dupont1[0], d.dupont2[0], 0.0)
 
 
-# plot phase-folded RV orbits 
+# plot phase-folded RV orbits
 
 # set up the figure dimensions and plot the data
 lmargin = 0.5
@@ -231,27 +220,36 @@ ax2.xaxis.set_ticklabels([])
 fig.savefig(f"{plotdir}RV.pdf")
 
 
-# plot predicted sep and pa vs time plots 
-ts_astro_dense = np.linspace(np.min(d.anthonioz[0]) - 40, np.max(d.anthonioz[0]) + 40, num=2000)
+# plot predicted sep and pa vs time plots
+ts_astro_dense = np.linspace(
+    np.min(d.anthonioz[0]) - 40, np.max(d.anthonioz[0]) + 40, num=2000
+)
 with m.model:
+    rv_ast = m.get_RVs(ts_astro_dense, ts_astro_dense, 0.0)
     rho_dense, theta_dense = m.orbit.get_relative_angles(ts_astro_dense, m.parallax)
 
 
-# create a sep / pa figure 
-fig, ax = plt.subplots(nrows=2, sharex=True)
+# create a sep / pa figure
+# 4 panels, specify RV on top as well
+fig, ax = plt.subplots(nrows=4, sharex=True)
 
 for sample in xo.get_samples_from_trace(trace, size=20):
+    rv1_dense, rv2_dense = xo.eval_in_model(rv_ast, point=sample, model=m.model)
+
     rdense = xo.eval_in_model(rho_dense, point=sample, model=m.model)
-    tdense = xo.eval_in_model(theta_dense, point=sample, model=m.model)    
+    tdense = xo.eval_in_model(theta_dense, point=sample, model=m.model)
 
-    ax[0].plot(ts_astro_dense, rdense, **pkw)
-    ax[1].plot(ts_astro_dense, tdense / deg, **pkw)
+    ax[0].plot(ts_astro_dense, rv1_dense, **pkw)
+    ax[1].plot(ts_astro_dense, rv2_dense, **pkw)
+
+    ax[2].plot(ts_astro_dense, rdense, **pkw)
+    ax[3].plot(ts_astro_dense, tdense / deg, **pkw)
 
 
-# plot the actual data on top 
+# plot the actual data on top
 ax[0].errorbar(d.anthonioz[0], d.anthonioz[1], yerr=d.anthonioz[2], **ekw)
 ax[0].set_xlabel(r"$\rho [{}^{\prime\prime}]$")
 ax[1].errorbar(d.anthonioz[0], d.anthonioz[3] / deg, yerr=d.anthonioz[4] / deg, **ekw)
-ax[1].set_xlabel(r"$\theta [{}^\circ}]$")
+ax[1].set_xlabel(r"$\theta [{}^\circ]$")
 
 fig.savefig(f"{plotdir}sep_pa.pdf")

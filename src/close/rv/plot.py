@@ -21,7 +21,6 @@ f = open(f"{plotdir}summary.txt", "w")
 df.to_string(f)
 f.close()
 
-
 with az.rc_context(rc={"plot.max_subplots": 60}):
     # autocorrelation
     az.plot_autocorr(trace, var_names=m.sample_vars)

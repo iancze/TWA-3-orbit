@@ -21,7 +21,7 @@ with pm.Model() as model:
     mparallax = pm.Normal("mparallax", mu=27.31, sd=0.12)  # milliarcsec GAIA DR2
     parallax = pm.Deterministic("parallax", 1e-3 * mparallax)  # arcsec
 
-    a_ang = pm.Uniform("a_ang", 0.1, 10.0, testval=3.51)  # milliarcsec
+    a_ang = pm.Uniform("aAng", 0.1, 10.0, testval=3.51)  # milliarcsec
 
     # the semi-major axis in au
     a = pm.Deterministic("a", 1e-3 * a_ang / parallax)  # au
@@ -45,7 +45,7 @@ with pm.Model() as model:
     incl = pm.Deterministic("incl", tt.arccos(cos_incl))
 
     # Since we're doing an RV + astrometric fit, M2 now becomes a parameter of the model
-    # use a bounded normal to enforce positivity 
+    # use a bounded normal to enforce positivity
     PosNormal = pm.Bound(pm.Normal, lower=0.0)
     MAb = PosNormal("MAb", mu=0.3, sd=0.5, testval=0.3)  # solar masses
 
@@ -167,7 +167,9 @@ with pm.Model() as model:
 
     # get the astrometric predictions
     # since there is only one measurement no jitter
-    rho_model, theta_model = orbit.get_relative_angles(d.anthonioz[0], parallax)  # arcsec
+    rho_model, theta_model = orbit.get_relative_angles(
+        d.anthonioz[0], parallax
+    )  # arcsec
 
     # evaluate the astrometric likelihood functions
     pm.Normal("obs_rho", mu=rho_model, observed=d.anthonioz[1], sd=d.anthonioz[2])
@@ -186,5 +188,7 @@ sample_vars = [re.sub("_\S*__", "", var.name) for var in model.free_RVs]
 all_vars = [
     var.name
     for var in model.unobserved_RVs
-    if ("_interval__" not in var.name) and ("_angle__" not in var.name) and ("_lowerbound__" not in var.name)
+    if ("_interval__" not in var.name)
+    and ("_angle__" not in var.name)
+    and ("_lowerbound__" not in var.name)
 ]
