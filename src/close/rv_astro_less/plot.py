@@ -3,12 +3,16 @@ import corner
 import exoplanet as xo
 import matplotlib.pyplot as plt
 import pymc3 as pm
+import os
 
 import src.close.rv_astro_less.model as m
 import src.data as d
 from src.constants import *
 
 plotdir = "figures/close/rv_astro_less/"
+
+if not os.path.isdir(plotdir):
+    os.makedirs(plotdir)
 
 trace = pm.load_trace(directory="chains/close/rv_astro_less", model=m.model)
 
@@ -247,9 +251,9 @@ for sample in xo.get_samples_from_trace(trace, size=20):
 
 
 # plot the actual data on top
-ax[0].errorbar(d.anthonioz[0], d.anthonioz[1], yerr=d.anthonioz[2], **ekw)
-ax[0].set_xlabel(r"$\rho [{}^{\prime\prime}]$")
-ax[1].errorbar(d.anthonioz[0], d.anthonioz[3] / deg, yerr=d.anthonioz[4] / deg, **ekw)
-ax[1].set_xlabel(r"$\theta [{}^\circ]$")
+ax[2].errorbar(d.anthonioz[0], d.anthonioz[1], yerr=d.anthonioz[2], **ekw)
+ax[2].set_ylabel(r"$\rho [{}^{\prime\prime}]$")
+ax[3].errorbar(d.anthonioz[0], d.anthonioz[3] / deg, yerr=d.anthonioz[4] / deg, **ekw)
+ax[3].set_ylabel(r"$\theta [{}^\circ]$")
 
 fig.savefig(f"{plotdir}sep_pa.pdf")

@@ -3,12 +3,18 @@ import corner
 import exoplanet as xo
 import matplotlib.pyplot as plt
 import pymc3 as pm
+import os 
+
 
 import src.close.rv_astro_disk_less.model as m
 import src.data as d
 from src.constants import *
+from src.plot_utils import plot_cline, plot_nodes
 
 plotdir = "figures/close/rv_astro_disk_less/"
+
+if not os.path.isdir(plotdir):
+    os.makedirs(plotdir)
 
 trace = pm.load_trace(directory="chains/close/rv_astro_disk_less", model=m.model)
 
@@ -240,25 +246,70 @@ fig.savefig(f"{plotdir}RV.pdf")
 
 # plot predicted sep and pa vs time plots 
 ts_astro_dense = np.linspace(np.min(d.anthonioz[0]) - 40, np.max(d.anthonioz[0]) + 40, num=2000)
+
 with m.model:
+    rv_ast = m.get_RVs(ts_astro_dense, ts_astro_dense, 0.0)
     rho_dense, theta_dense = m.orbit.get_relative_angles(ts_astro_dense, m.parallax)
 
 
-# create a sep / pa figure 
-fig, ax = plt.subplots(nrows=2, sharex=True)
+# create a sep / pa figure
+# 4 panels, specify RV on top as well
+fig, ax = plt.subplots(nrows=4, sharex=True)
 
 for sample in xo.get_samples_from_trace(trace, size=20):
+    rv1_dense, rv2_dense = xo.eval_in_model(rv_ast, point=sample, model=m.model)
+
     rdense = xo.eval_in_model(rho_dense, point=sample, model=m.model)
-    tdense = xo.eval_in_model(theta_dense, point=sample, model=m.model)    
+    tdense = xo.eval_in_model(theta_dense, point=sample, model=m.model)
 
-    ax[0].plot(ts_astro_dense, rdense, **pkw)
-    ax[1].plot(ts_astro_dense, tdense / deg, **pkw)
+    ax[0].plot(ts_astro_dense, rv1_dense, **pkw)
+    ax[1].plot(ts_astro_dense, rv2_dense, **pkw)
+
+    ax[2].plot(ts_astro_dense, rdense, **pkw)
+    ax[3].plot(ts_astro_dense, tdense / deg, **pkw)
 
 
-# plot the actual data on top 
-ax[0].errorbar(d.anthonioz[0], d.anthonioz[1], yerr=d.anthonioz[2], **ekw)
-ax[0].set_xlabel(r"$\rho [{}^{\prime\prime}]$")
-ax[1].errorbar(d.anthonioz[0], d.anthonioz[3] / deg, yerr=d.anthonioz[4] / deg, **ekw)
-ax[1].set_xlabel(r"$\theta [{}^\circ}]$")
+# plot the actual data on top
+ax[2].errorbar(d.anthonioz[0], d.anthonioz[1], yerr=d.anthonioz[2], **ekw)
+ax[2].set_ylabel(r"$\rho [{}^{\prime\prime}]$")
+ax[3].errorbar(d.anthonioz[0], d.anthonioz[3] / deg, yerr=d.anthonioz[4] / deg, **ekw)
+ax[3].set_ylabel(r"$\theta [{}^\circ]$")
 
 fig.savefig(f"{plotdir}sep_pa.pdf")
+
+
+# make a plot of the sky 
+
+# add dense predictions for orbit 
+with m.model:
+    ast_dense = m.orbit.get_relative_angles(ts_phases, m.parallax)
+
+
+fig, ax = plt.subplots(nrows=1, figsize=(6,6))
+
+for sample in xo.get_samples_from_trace(trace, size=20):
+    rdense, tdense = xo.eval_in_model(ast_dense, point=sample, model=m.model)
+    t = xo.eval_in_model(ts_phases, point=sample, model=m.model)
+
+    x = rdense * np.cos(tdense) # X is north
+    y = rdense * np.sin(tdense) # Y is east
+    plot_cline(ax, y, x, t, primary=False)
+
+# plot the line of nodes for the last sample
+plot_nodes(ax, sample["Omega"], 5e-3)
+
+# plot the position of the secondary relative to the primary
+x = d.anthonioz[1] * np.cos(d.anthonioz[3]) # X is north
+y = d.anthonioz[1] * np.sin(d.anthonioz[3]) # Y is east
+
+ax.plot(y, x, "ko")
+
+ax.set_ylabel(r"$\Delta \delta$ ['']")
+ax.set_xlabel(r"$\Delta \alpha \cos \delta$ ['']")
+ax.invert_xaxis()
+ax.plot(0,0, "k*")
+ax.set_aspect("equal", "datalim")
+fig.subplots_adjust(left=0.18, right=0.82)
+fig.savefig(f"{plotdir}sky.pdf")
+
+

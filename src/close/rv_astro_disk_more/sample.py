@@ -1,5 +1,7 @@
 import pymc3 as pm
 import exoplanet as xo
+import os 
+
 
 import src.close.rv_astro_disk_more.model as m
 
@@ -20,10 +22,15 @@ with m.model:
     )
 
 
+chaindir = "chains/close/rv_astro_disk_more/"
+
+if not os.path.isdir(chaindir):
+    os.makedirs(chaindir)
+
 # save the samples as a pymc3 object
-pm.save_trace(trace, directory="chains/close/rv_astro_disk_more", overwrite=True)
+pm.save_trace(trace, directory=chaindir, overwrite=True)
 
 # and as a CSV, just in case the model spec
 # changes and we have trouble reloading things
 df = pm.trace_to_dataframe(trace)
-df.to_csv(f"chains/close/rv_astro_disk_more/current.csv")
+df.to_csv(f"{chaindir}current.csv")

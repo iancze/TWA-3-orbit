@@ -5,6 +5,8 @@ import exoplanet as xo
 import numpy as np
 import pandas as pd
 import re
+import os 
+
 
 # load the exoplanet part
 import theano.tensor as tt

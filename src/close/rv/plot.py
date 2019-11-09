@@ -3,12 +3,17 @@ import corner
 import exoplanet as xo
 import matplotlib.pyplot as plt
 import pymc3 as pm
+import os 
 
 import src.close.rv.model as m
 import src.data as d
 from src.constants import *
 
 plotdir = "figures/close/rv/"
+
+if not os.path.isdir(plotdir):
+    os.makedirs(plotdir)
+
 
 trace = pm.load_trace(directory="chains/close/rv", model=m.model)
 
