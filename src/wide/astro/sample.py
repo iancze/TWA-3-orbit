@@ -6,11 +6,11 @@ import src.wide.astro.model as m
 
 with m.model:
     trace = pm.sample(
-        tune=2000,
-        draws=3000,
+        tune=3000,
+        draws=2000,
         # start=map_sol,
         chains=4,
-        step=xo.get_dense_nuts_step(target_accept=0.9),
+        step=xo.get_dense_nuts_step(target_accept=0.95),
     )
 
 chaindir = "chains/wide/astro/"

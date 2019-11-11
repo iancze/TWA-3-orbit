@@ -72,6 +72,14 @@ dupont1, dupont2 = get_arrays(data_dupont, err_dupont, jitter=jitter)
 
 rv_data = [data_cfa, data_keck, data_feros, data_dupont]
 
+# specifically load the B velocities
+mask = ~data_keck["RV_B"].mask
+
+keck3 = (
+    np.ascontiguousarray(data_keck["HJD"][mask]) + 2400000 - jd0,
+    np.ascontiguousarray(data_keck["RV_B"][mask]),
+    0.2 * np.ones(np.sum(mask), dtype=np.float64),
+)
 
 # load the Anthonioz astrometric data
 

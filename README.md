@@ -7,24 +7,27 @@ It helps to install this locally to a conda environment. In my case, I did
         $ conda create --name TWA3 python=3.6
         $ conda activate TWA3
         # install all the required packages
+
+I found that with the Mac OSX upgrade to catalina, existing theano installs were messed up. In theory, I would like to do
+
         $ conda install --file requirements.txt # should work in principle, but...
 
-I found that with the Mac OSX upgrade to catalina, existing theano installs were messed up. I needed to completely reinstall anaconda and allow theano and pymc3 to be installed from the 
+But instead I found I needed to completely reinstall anaconda and allow theano and pymc3 to be installed from the 
     
         $ python setup.py install
 
-done inside of the `exoplanet` repo, rather than pre-installing these things with conda. This could also have been due to an issue with XCODE needing to be reinstalled, and then `exoplanet` needing to be reinstalled on top of that.
+inside of my cloned `exoplanet` repo, rather than pre-installing these things with conda. This could also have been due to an issue with XCODE needing to be reinstalled, and then `exoplanet` needing to be reinstalled on top of that. I also needed to do 
 
-`corner.py` needs to be installed with pip.
-`arviz` needs to be installed from pip too.
+    $ pip install corner
+    $ pip install arviz
 
-Since exoplanet is under heavy development, we'll install this from source. With the environment still activated, go to the `exoplanet` source directory, and `python setup.py install`. (If you're satisfied with the latest stable version, you can just install exoplanet with conda). 
-
-Then return to this directory and install the project as editable.
+Then return to this TWA3 directory and install the project as editable.
 
         $ pip install -e .
 
 This should keep the whole directory structure much more organized and portable than before.
+
+## Analysis 
 
 The idea is that all analysis scripts will be run from the root directory of this project. E.g., 
 
@@ -36,9 +39,14 @@ and not from within individual folders
     $ cd src/joint 
     $ python sample.py
 
-This way we are always operating from the root directory and don't have to worry about traversing up and across the folder tree.
+This way we are always operating from the root directory and don't have to worry about traversing up and across the folder tree. I've created a `Makefile` which should now enable a much more efficient execution of these scripts. 
 
-## Introduction
+    # e.g., 
+    $ make wide-astro
+
+Open up `Makefile` to see all of the targets.
+
+## Orbital fits
 
 Determining the architecture of the TWA 3 hierarchical triple system using a combination of ALMA CO 2-1 observations, radial velocity, and astrometric data. 
 
@@ -53,24 +61,24 @@ Building up to the joint fit, we have also made fits to smaller portions of the 
 7. Hierarchical triple orbit simultaneously fit including dynamical mass prior on `M_A`.
 8. Same, but now including disk orbit normal (evaluated w/ KDE from dynamical modeling) and directly calculating mutual inclinations for all angles.
 
-## Remaining orbital ambiguities 
-After completing the disk + rv + astro fits, I think there are still a few orbital ambiguities that we should consider addressing. If you want to stretch the data, I would say that we actually have leverage on all of these quantities. However, there are some tricky parts in interpreting the data that we need to be careful to consider.
+## Cataloguing the orbital ambiguities 
+After completing the disk + rv + astro fits, there are still a few orbital ambiguities that should be addressed. If you want to stretch the data, I would say that we actually have leverage on all of these quantities. However, there are some tricky parts in interpreting the data that we need to be careful to consider.
 
 ### i_A (inner binary inclination) > 90 or < 90
-From the inner orbit + Anthonioz point + disk-based mass on M_A, there are two degenerate solutions for i_A (below and above 90), each of which has a *slightly* different Omega value. These solutions are plotted in the ipython notebook for this fit.
+From the inner orbit + Anthonioz point + disk-based mass on M_A, there are two degenerate solutions for i_A (below and above 90), each of which has a *slightly* different Omega value. These sub-corner plots are plotted in the IPython notebook for this fit.
 
-    incl:48.75 +\- 0.89
-    Omega:112.10 +\- 9.46
+    incl: 48.75 +\- 0.89
+    Omega: 112.10 +\- 9.46
 
-    incl:131.25 +\- 0.90
-    Omega:104.44 +\- 9.41
+    incl: 131.25 +\- 0.90
+    Omega: 104.44 +\- 9.41
 
 ### i_disk > 90 or < 90
 In theory, we should be able to tell from the sub-mm emission alone which side of the disk is near. However, the CO emission is sufficiently faint that I'm not sure I can do this without error. There seems like there is the brightness asymmetry for the figure-8 and there is the brightness asymmetry in the C-shape. I should look at well-resolved disks like HD163296 to ascertain which side is near/far. One additional check we can do is that if the binary and disk are coplanar, then Omega_disk should match Omega_binary. 
 
 From the Nuker fit, PA_disk = 207 +/- 1 degr. This would be Omega_disk = 117 +/- degr. If we assume that the disk and binary are coplanar, then this would seem to favor the Omega_binary=112 solution (i_binary < 90). Which would suggest that the inner binary and outer tertiary are retrograde. If we instead say that these things are not coplanar, then there are several other families of solutions.
 
-I split these up into two families, the i < 90 and i > 90. I also flipped the disk to match the same inclination. Technically there is an alternate solution to this which has the disk != star signs of inclination, but given that the inclinations are so close, I think this is a fairly pathalogical case. The question really is whether the i < 90 inner binary solution gives a substantially more coplanar fit than the i > 90, because this will be used to compare to the outer binary orientation. Doing this fit, the answer is that both solutions appear to be coplanar. There is enough ambiguity in the Omega_inner that this permits coplanar solutions < 10 mutual inclination between disk and inner binary.
+I split these up into two families, the i < 90 and i > 90. I also flipped the disk to match the same inclination. Technically there is an alternate solution to this which has the disk != star signs of inclination, but given that the inclinations are so close, I think this is a fairly pathological case. The question really is whether the i < 90 inner binary solution gives a substantially more coplanar fit than the i > 90, because this will be used to compare to the outer binary orientation. Doing this fit, the answer is that both solutions appear to be coplanar. There is enough ambiguity in the Omega_inner that this permits coplanar solutions < 10 mutual inclination between disk and inner binary.
 
 With no sense of rotation, there is a degeneracy between inclination < 90 and > 90 degrees. So, when I fit orbits under both assumptions, I get decent constraints on Omega (position angle of the ascending node) with strangely very similar (though definitely not identical) values. I've been trying to work out whether this is a) a bug, b ) a coincidence c) a bias from doing inference w/ only one astrometric measurement. To illustrate, here are two figures from i < 90 and i > 90, respectively. The secondary star moves from black (periastron) to orange throughout the orbit, and I've labeled the ascending node (receding from observer in my definition with red).
 

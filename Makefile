@@ -20,10 +20,8 @@ outputs = summary.txt trace.png corner.png autocorr.png
 # astro_rv_inc
 # astro_rv_dec
 ### joint/
-# rv_astro_inc
-# rv_astro_dec
-# rv_astro_disk_inc
-# rv_astro_disk_dec
+# rv_astro_disk_less
+# rv_astro_disk_more
 
 # target rule to make all of the figures for a directory
 

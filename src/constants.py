@@ -33,3 +33,25 @@ def calc_Mtot(a, P):
     kg_to_M_sun = (1 * u.kg).to(u.M_sun).value
 
     return 4 * np.pi**2 * (a * au_to_m)**3 / (constants.G.value * (P * day_to_s)**2) * kg_to_M_sun
+
+def calc_a(Mtot, P):
+    """
+    Calculate the semi-major axis using Kepler's third law
+
+    Args:
+        Mtot (Msun) total mass
+        P (days) period
+
+    Returns:
+        a (au)
+    """
+
+    day_to_s = (1 * u.day).to(u.s).value
+    au_to_m = (1 * u.au).to(u.m).value
+    kg_to_M_sun = (1 * u.kg).to(u.M_sun).value
+
+    return (
+        ((Mtot / kg_to_M_sun) * constants.G.value * (P * day_to_s) ** 2)
+        / (4 * np.pi ** 2)
+    ) ** (1 / 3) / au_to_m
+

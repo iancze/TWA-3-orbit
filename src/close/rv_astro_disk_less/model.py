@@ -20,15 +20,8 @@ import src.data as d
 
 from src.close.rv_astro_less.model import *
 
-MA_mu, MA_std = d.disk_properties["MA"]
-
 # rather than completely reimplement model, just extend it
 with model:
-    # evaluate the disk likelihood on M_Aa + M_Ab
-    # disk mass marginalized over all structure params (including i_disk and Omega_disk)
-    # pm.Normal("obs_MA", mu=MA, observed=MA_mu, sd=MA_std)
-
-    # MA is generated from the orbit
     # generate i_disk from the range of samples
     i_disk = pm.Uniform(
         "iDisk",
