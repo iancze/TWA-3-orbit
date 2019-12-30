@@ -58,8 +58,11 @@ Building up to the joint fit, we have also made fits to smaller portions of the 
 4. [Done] A-B wide binary orbit fit with the astrometric dataset (WDS) and *Gaia* parallax. Constrains `P_AB`, `a_AB`, `Omega_AB`, `omega_AB`, `e_AB`, `phi_AB`.
 5. [Done] A-B wide binary orbit fit with astrometric dataset and RV information from Keck double-lined solution. Constrains the above astrometric parameters plus stellar masses. If we treat the Keck points as increasing in a statistically significant manner, then this breaks the Omega degeneracy in such a way that the outer triple is at least moderately aligned (if not coplanar) with the inner binary. If we don't assume this, then there is still a degeneracy.
 6. [Done] Hierarchical triple orbit simultaneously fit with RV and astrometry for both tight inner binary and wide outer binary: inner: `parallax`, `P_A`, `a_A_ang`, `M_Ab`, `e_A`, `i_A`, `omega_Aa`, `Omega_Aa`,  outer: `P_B`, `a_B_ang`, `e_AB`, `i_AB`, `omega_A`, `Omega_A`, `gamma_AB`. `M_A` is derived from inner orbit and fed to outer orbit.  `gamma_A` is essentially the RV prediction of A, and is derived from outer orbit and fed to the inner orbit. This has 15 orbital parameters. Adding 4 RV offsets, 2 * 4 RV jitter terms, and 2 astrometric jitter terms makes it 30 parameters total.  
-7. Hierarchical triple orbit simultaneously fit including dynamical mass prior on `M_A`.
-8. Same, but now including disk orbit normal (evaluated w/ KDE from dynamical modeling) and directly calculating mutual inclinations for all angles.
+7. [Done] Hierarchical triple orbit simultaneously fit including dynamical mass prior on `M_A`.
+8. [Done] Same, but now including disk orbit normal (evaluated as multi-dimenisonal Gaussian  from dynamical modeling and directly calculating mutual inclinations for all angles. 
+
+
+Calculating mutual inclinations *without* the isotropic prior. It would be a good idea to sample from the prior distributions that we have just to demonstrate what the natural phase-space prior is on `theta`.
 
 ## Cataloguing the orbital ambiguities 
 After completing the disk + rv + astro fits, there are still a few orbital ambiguities that should be addressed. If you want to stretch the data, I would say that we actually have leverage on all of these quantities. However, there are some tricky parts in interpreting the data that we need to be careful to consider.
