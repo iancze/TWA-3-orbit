@@ -38,7 +38,7 @@ with pm.Model() as model:
     Omega_inner = Angle("OmegaInner", testval=1.95)
 
     # constrained to be i < 90
-    cos_incl_inner = pm.Uniform("cosInclInner", lower=0.0, upper=1.0, testval=0.659)
+    cos_incl_inner = pm.Uniform("cosInclInner", lower=-1.0, upper=1.0, testval=0.659)
     incl_inner = pm.Deterministic("inclInner", tt.arccos(cos_incl_inner))
 
     MAb = pm.Normal("MAb", mu=0.29, sd=0.5, testval=0.241)  # solar masses
@@ -78,7 +78,7 @@ with pm.Model() as model:
         "tPeriastronOuter", (phi_outer + omega_outer) / n
     )
 
-    cos_incl_outer = pm.Uniform("cosInclOuter", lower=-1.0, upper=0.0, testval=-0.70)
+    cos_incl_outer = pm.Uniform("cosInclOuter", lower=-1.0, upper=1.0, testval=-0.70)
     incl_outer = pm.Deterministic("inclOuter", tt.arccos(cos_incl_outer))
     e_outer = pm.Uniform("eOuter", lower=0.0, upper=1.0, testval=0.1)
     gamma_outer = pm.Uniform(
