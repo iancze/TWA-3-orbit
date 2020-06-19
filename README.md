@@ -4,8 +4,8 @@
 
 It helps to install this locally to a conda environment. In my case, I did
 
-    $ python3 -m venv .venv
-    $ source .venv/bin/activate
+    $ python3 -m venv venv
+    $ source venv/bin/activate
 
 Then the package can be installed locally. 
 
@@ -17,7 +17,7 @@ The requirements can be installed via
 
 Then install exoplanet
 
-    $ python -m pip install -U exoplanet        
+    $ pip install -U exoplanet        
 
 This should keep the whole directory structure much more organized and portable than before.
 
@@ -39,6 +39,9 @@ This way we are always operating from the root directory and don't have to worry
     $ make wide-astro
 
 Open up `Makefile` to see all of the targets.
+
+Each orbital scenario should have a `model.py`, `sample.py` and `plot.py` code in it.
+
 
 ## Orbital fits
 
