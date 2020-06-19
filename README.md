@@ -4,26 +4,20 @@
 
 It helps to install this locally to a conda environment. In my case, I did
 
-        $ conda create --name TWA3 python=3.6
-        $ conda activate TWA3
-        # install all the required packages
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
 
-I found that with the Mac OSX upgrade to catalina, existing theano installs were messed up. In theory, I would like to do
+Then the package can be installed locally. 
 
-        $ conda install --file requirements.txt # should work in principle, but...
+    $ pip install -e .
 
-But instead I found I needed to completely reinstall anaconda and allow theano and pymc3 to be installed from the 
-    
-        $ python setup.py install
+The requirements can be installed via 
 
-inside of my cloned `exoplanet` repo, rather than pre-installing these things with conda. This could also have been due to an issue with XCODE needing to be reinstalled, and then `exoplanet` needing to be reinstalled on top of that. I also needed to do 
+    $ pip install -r requirements.txt
 
-    $ pip install corner
-    $ pip install arviz
+Then install exoplanet
 
-Then return to this TWA3 directory and install the project as editable.
-
-        $ pip install -e .
+    $ python -m pip install -U exoplanet        
 
 This should keep the whole directory structure much more organized and portable than before.
 
