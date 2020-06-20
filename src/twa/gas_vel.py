@@ -1,12 +1,11 @@
-import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.patches import Ellipse
-from matplotlib.colors import LinearSegmentedColormap as LSC
-
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.io import fits
+from matplotlib.colors import LinearSegmentedColormap as LSC
+from matplotlib.patches import Ellipse
+from matplotlib.ticker import MultipleLocator
 
 # ran bettermoments with
 # bettermoments 12CO.fits -method quadratic -clip 6 -rms 1.6e-03
@@ -87,16 +86,18 @@ def plot_gas(ax, cax):
     mu_RA = 0.0
     mu_DEC = 0.0
 
-    radius = 2.9  # arcsec 
+    radius = 2.9  # arcsec
 
-    v_off = 9.26 # km/s
+    v_off = 9.26  # km/s
 
     data, beam, ext = load_data("12CO_v0.fits", mu_RA, mu_DEC)
 
     cmap = cm.RdBu_r
-    im = ax.imshow(data * 1e-3 + v_off, cmap=cmap, origin="lower", extent=ext, aspect="equal")
+    im = ax.imshow(
+        data * 1e-3 + v_off, cmap=cmap, origin="lower", extent=ext, aspect="equal"
+    )
 
-    # plot the colorbar 
+    # plot the colorbar
     plt.colorbar(im, cax=cax, orientation="horizontal")
 
     plot_beam(ax, beam, xy=(0.91 * radius, -0.91 * radius))

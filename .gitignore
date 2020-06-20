@@ -111,3 +111,5 @@ venv.bak/
 
 # ignore MCMC samples since these are large 
 chains
+
+setup_twa.sh

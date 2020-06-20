@@ -1,4 +1,4 @@
-                        mean         sd     hpd_3%     hpd_97%  mcse_mean   mcse_sd  ess_mean   ess_sd  ess_bulk  ess_tail  r_hat
+                        mean         sd     hdi_3%     hdi_97%  mcse_mean   mcse_sd  ess_mean   ess_sd  ess_bulk  ess_tail  r_hat
 mparallax             27.313      0.119     27.086      27.529      0.001     0.001    8320.0   8285.0    8286.0    3829.0   1.00
 MAb                    0.241      0.005      0.231       0.251      0.000     0.000    9177.0   9177.0    9170.0    8607.0   1.00
 logPOuter              6.182      0.400      5.412       6.891      0.009     0.007    1910.0   1863.0    1915.0    2267.0   1.00

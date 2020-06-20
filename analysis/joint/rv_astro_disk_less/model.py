@@ -11,8 +11,8 @@ import theano.tensor as tt
 from astropy.io import ascii
 from exoplanet.distributions import Angle
 
-from src.constants import *
-import src.data as d
+from twa.constants import *
+import twa.data as d
 
 zeros = np.zeros_like(d.wds[0])
 
@@ -131,7 +131,9 @@ with pm.Model() as model:
 
     # get the radial velocity predictions for RV B
     rv3_keck = (
-        conv * orbit_outer.get_planet_velocity(d.keck3[0])[2] + gamma_outer + offset_keck
+        conv * orbit_outer.get_planet_velocity(d.keck3[0])[2]
+        + gamma_outer
+        + offset_keck
     )
 
     # since we have 4 instruments, we need to predict 4 different dataseries
@@ -175,9 +177,7 @@ with pm.Model() as model:
     rv1_dupont, rv2_dupont = get_RVs(d.dupont1[0], d.dupont2[0], offset_dupont)
 
     logjit_cfa = pm.Uniform("logjittercfa", lower=-5.0, upper=np.log(5), testval=1.3)
-    logjit_keck = pm.Uniform(
-        "logjitterkeck", lower=-5.0, upper=np.log(5), testval=-0.1
-    )
+    logjit_keck = pm.Uniform("logjitterkeck", lower=-5.0, upper=np.log(5), testval=-0.1)
     logjit_feros = pm.Uniform(
         "logjitterferos", lower=-5.0, upper=np.log(5), testval=1.29
     )
@@ -202,13 +202,22 @@ with pm.Model() as model:
     )
 
     pm.Normal(
-        "keckRV1Obs", mu=rv1_keck, observed=d.keck1[1], sd=get_err(d.keck1[2], logjit_keck)
+        "keckRV1Obs",
+        mu=rv1_keck,
+        observed=d.keck1[1],
+        sd=get_err(d.keck1[2], logjit_keck),
     )
     pm.Normal(
-        "keckRV2Obs", mu=rv2_keck, observed=d.keck2[1], sd=get_err(d.keck2[2], logjit_keck)
+        "keckRV2Obs",
+        mu=rv2_keck,
+        observed=d.keck2[1],
+        sd=get_err(d.keck2[2], logjit_keck),
     )
     pm.Normal(
-        "keckRV3Obs", mu=rv3_keck, observed=d.keck3[1], sd=get_err(d.keck3[2], logjit_keck)
+        "keckRV3Obs",
+        mu=rv3_keck,
+        observed=d.keck3[1],
+        sd=get_err(d.keck3[2], logjit_keck),
     )
 
     pm.Normal(
@@ -251,11 +260,17 @@ with pm.Model() as model:
     )
     pm.Normal("obsThetaInner", mu=theta_diff_inner, observed=0.0, sd=d.anthonioz[4])
 
-    rho_outer, theta_outer = orbit_outer.get_relative_angles(d.wds[0], parallax)  # arcsec
+    rho_outer, theta_outer = orbit_outer.get_relative_angles(
+        d.wds[0], parallax
+    )  # arcsec
 
     # add jitter terms to both separation and position angle
-    log_rho_s = pm.Normal("logRhoS", mu=np.log(np.median(d.wds[2])), sd=2.0, testval=-4.8)
-    log_theta_s = pm.Normal("logThetaS", mu=np.log(np.median(d.wds[4])), sd=2.0, testval=-3.7)
+    log_rho_s = pm.Normal(
+        "logRhoS", mu=np.log(np.median(d.wds[2])), sd=2.0, testval=-4.8
+    )
+    log_theta_s = pm.Normal(
+        "logThetaS", mu=np.log(np.median(d.wds[4])), sd=2.0, testval=-3.7
+    )
 
     rho_tot_err = tt.sqrt(d.wds[2] ** 2 + tt.exp(2 * log_rho_s))
     theta_tot_err = tt.sqrt(d.wds[4] ** 2 + tt.exp(2 * log_theta_s))
@@ -288,16 +303,36 @@ with pm.Model() as model:
 
     pm.MvNormal("obsDisk", mu=d.disk_mu, cov=d.disk_cov, observed=disk_observed)
 
-    # calculate the mutual inclination angles 
-    
-    # between the inner binary and disk
-    theta_disk_inner = pm.Deterministic("thetaDiskInner", tt.arccos(tt.cos(i_disk)*tt.cos(incl_inner) + tt.sin(i_disk) * tt.sin(incl_inner) * tt.cos(Omega_disk - Omega_inner)))
+    # calculate the mutual inclination angles
 
-    # between the inner binary and outer binary 
-    theta_inner_outer = pm.Deterministic("thetaInnerOuter", tt.arccos(tt.cos(incl_inner)*tt.cos(incl_outer) + tt.sin(incl_inner) * tt.sin(incl_outer) * tt.cos(Omega_inner - Omega_outer)))
+    # between the inner binary and disk
+    theta_disk_inner = pm.Deterministic(
+        "thetaDiskInner",
+        tt.arccos(
+            tt.cos(i_disk) * tt.cos(incl_inner)
+            + tt.sin(i_disk) * tt.sin(incl_inner) * tt.cos(Omega_disk - Omega_inner)
+        ),
+    )
+
+    # between the inner binary and outer binary
+    theta_inner_outer = pm.Deterministic(
+        "thetaInnerOuter",
+        tt.arccos(
+            tt.cos(incl_inner) * tt.cos(incl_outer)
+            + tt.sin(incl_inner)
+            * tt.sin(incl_outer)
+            * tt.cos(Omega_inner - Omega_outer)
+        ),
+    )
 
     # between the disk and outer binary
-    theta_disk_outer = pm.Deterministic("thetaDiskOuter", tt.arccos(tt.cos(i_disk)*tt.cos(incl_outer) + tt.sin(i_disk) * tt.sin(incl_outer) * tt.cos(Omega_disk - Omega_outer)))
+    theta_disk_outer = pm.Deterministic(
+        "thetaDiskOuter",
+        tt.arccos(
+            tt.cos(i_disk) * tt.cos(incl_outer)
+            + tt.sin(i_disk) * tt.sin(incl_outer) * tt.cos(Omega_disk - Omega_outer)
+        ),
+    )
 
 
 # iterate through the list of free_RVs in the model to get things like

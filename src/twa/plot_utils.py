@@ -1,10 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import arviz as az
 import collections
 
+import arviz as az
 import matplotlib.colors
-
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap
 
@@ -117,12 +116,12 @@ def efficient_trace(trace, var_names, figstem, max_panel=6):
     n = 0
     i = 0
     while n <= N:
-        plot_vars = var_names[n:n+max_panel]
+        plot_vars = var_names[n : n + max_panel]
 
         az.plot_trace(trace, var_names=plot_vars)
         plt.savefig(figstem.format(i))
         plt.close("all")
-        n += max_panel 
+        n += max_panel
         i += 1
 
 
@@ -135,10 +134,10 @@ def efficient_autocorr(trace, var_names, figstem, max_panel=6):
     n = 0
     i = 0
     while n <= N:
-        plot_vars = var_names[n:n+max_panel]
+        plot_vars = var_names[n : n + max_panel]
 
         az.plot_autocorr(trace, var_names=plot_vars)
         plt.savefig(figstem.format(i))
         plt.close("all")
-        n += max_panel 
+        n += max_panel
         i += 1

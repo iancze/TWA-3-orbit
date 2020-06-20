@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import astropy
 import numpy as np
 from astropy import constants
@@ -5,12 +8,15 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.time import Time
 
-from src.constants import *
+from .constants import *
 
 jitter = True  # Do this to infer w/ jitter
-closedir = "data/close/"
-widedir = "data/wide/"
-diskdir = "data/disk/"
+
+# get the root datadir from environment variables
+p = Path(os.getenv("TWA_DATA_ROOT"))
+closedir = p / "close"
+widedir = p / "wide"
+diskdir = p / "disk"
 
 
 def get_arrays(asciiTable, errDict=None, jitter=False):
@@ -54,19 +60,19 @@ def get_arrays(asciiTable, errDict=None, jitter=False):
 
 
 # load all of the RV data
-data_cfa = ascii.read(f"{closedir}cfa.dat")
+data_cfa = ascii.read(closedir / "cfa.dat")
 # cfa errors are provided in table
 cfa1, cfa2 = get_arrays(data_cfa, jitter=jitter)
 
-data_keck = ascii.read(f"{closedir}keck.dat", format="tab", fill_values=[("X", 0)])
+data_keck = ascii.read(closedir / "keck.dat", format="tab", fill_values=[("X", 0)])
 err_keck = {"Aa": 0.63, "Ab": 0.85, "B": 0.59}  # km/s
 keck1, keck2 = get_arrays(data_keck, err_keck, jitter=jitter)
 
-data_feros = ascii.read(f"{closedir}feros.dat")
+data_feros = ascii.read(closedir / "feros.dat")
 err_feros = {"Aa": 2.61, "Ab": 3.59, "B": 2.60}  # km/s
 feros1, feros2 = get_arrays(data_feros, err_feros, jitter=jitter)
 
-data_dupont = ascii.read(f"{closedir}dupont.dat", fill_values=[("X", 0)])
+data_dupont = ascii.read(closedir / "dupont.dat", fill_values=[("X", 0)])
 err_dupont = {"Aa": 1.46, "Ab": 2.34, "B": 3.95}  # km/s
 dupont1, dupont2 = get_arrays(data_dupont, err_dupont, jitter=jitter)
 
@@ -85,7 +91,7 @@ keck3 = (
 
 # keep in mind that the primary and secondary stars *could* be switched
 # separation is in milliarcseconds
-int_data = ascii.read(f"{closedir}int_data.dat")
+int_data = ascii.read(closedir / "int_data.dat")
 
 astro_jd = int_data["epoch"][0] - jd0
 rho_data = int_data["sep"][0] * 1e-3  # arcsec
@@ -98,7 +104,7 @@ anthonioz = (astro_jd, rho_data, rho_err, theta_data, theta_err)
 
 # load the wide orbit astrometric dataset
 data = ascii.read(
-    f"{widedir}visual_data_besselian.csv", format="csv", fill_values=[("X", "0")]
+    widedir / "visual_data_besselian.csv", format="csv", fill_values=[("X", "0")]
 )
 
 # convert years
@@ -121,10 +127,10 @@ theta_err = np.ascontiguousarray(data["PA_err"] * deg)  # radians
 wds = (jds, rho_data, rho_err, theta_data, theta_err)
 
 # load the disk constraints
-flatchain = np.load(f"{diskdir}flatchain.npy")
-disk_samples = flatchain[:, [0,9,10]] 
-disk_samples[:,2] -= 90.0 # convert conventions 
-disk_samples[:,[1,2]] *= deg # convert *to* radians
+flatchain = np.load(diskdir / "flatchain.npy")
+disk_samples = flatchain[:, [0, 9, 10]]
+disk_samples[:, 2] -= 90.0  # convert conventions
+disk_samples[:, [1, 2]] *= deg  # convert *to* radians
 mass_samples, incl_samples, Omega_samples = disk_samples.T
 
 disk_properties = {

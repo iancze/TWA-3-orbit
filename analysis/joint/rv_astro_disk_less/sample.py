@@ -1,8 +1,10 @@
-import pymc3 as pm
-import exoplanet as xo
-import os 
+import os
+from pathlib import Path
 
-import src.joint.rv_astro_disk_less.model as m
+import exoplanet as xo
+import pymc3 as pm
+
+import model as m
 
 with m.model:
     trace = pm.sample(
@@ -14,7 +16,7 @@ with m.model:
     )
 
 
-chaindir = "chains/joint/rv_astro_disk_less/"
+chaindir = Path("chains")
 
 if not os.path.isdir(chaindir):
     os.makedirs(chaindir)
@@ -25,4 +27,4 @@ pm.save_trace(trace, directory=chaindir, overwrite=True)
 # and as a CSV, just in case the model spec
 # changes and we have trouble reloading things
 df = pm.trace_to_dataframe(trace)
-df.to_csv(f"{chaindir}current.csv")
+df.to_csv(chaindir / "current.csv")

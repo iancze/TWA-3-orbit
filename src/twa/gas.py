@@ -1,12 +1,11 @@
-import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from matplotlib.ticker import MultipleLocator
-from matplotlib.patches import Ellipse
-from matplotlib.colors import LinearSegmentedColormap as LSC
-
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.io import fits
+from matplotlib.colors import LinearSegmentedColormap as LSC
+from matplotlib.patches import Ellipse
+from matplotlib.ticker import MultipleLocator
 
 # ran bettermoments with
 # bettermoments 12CO.fits -method quadratic -clip 6 -rms 1.6e-03
