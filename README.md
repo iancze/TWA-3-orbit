@@ -2,6 +2,8 @@
 
 ## Installation 
 
+### Pip
+
 It helps to install this locally to a conda environment. In my case, I did
 
     $ python3 -m venv venv
@@ -21,26 +23,17 @@ Then install exoplanet
 
 This should keep the whole directory structure much more organized and portable than before.
 
-## Analysis 
+### Conda 
 
-The idea is that all analysis scripts will be run from the root directory of this project. E.g., 
+Try the environment file.
 
-    $ python src/joint/sample.py 
+## Analysis Directory
 
-and not from within individual folders 
+There are three top-level directories for the close, wide, and joint analysis paths. These are outside of the package itself, and are the scripts we run to launch the analysis for each sub-model. The scripts are launched from within those directories. Each orbital scenario typically has a `model.py`, `sample.py` and `plot.py` code in it.
 
-    # don't do this 
-    $ cd src/joint 
-    $ python sample.py
+## Data assets directory
 
-This way we are always operating from the root directory and don't have to worry about traversing up and across the folder tree. I've created a `Makefile` which should now enable a much more efficient execution of these scripts. 
-
-    # e.g., 
-    $ make wide-astro
-
-Open up `Makefile` to see all of the targets.
-
-Each orbital scenario should have a `model.py`, `sample.py` and `plot.py` code in it.
+We need to find a way to keep the location of the assets paired easily with the main scripts. How can they load the same datafiles, regardless of which directory we are invoking things from?
 
 
 ## Orbital fits

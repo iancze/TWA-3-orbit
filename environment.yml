@@ -1,0 +1,16 @@
+name: twa
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - numpy 
+    - scipy
+    - matplotlib
+    - astropy
+    - pandas
+    - theano
+    - pymc3
+    - arviz
+    - exoplanet
+    - pip:
+        - corner
