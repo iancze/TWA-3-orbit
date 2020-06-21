@@ -128,7 +128,7 @@ wds = (jds, rho_data, rho_err, theta_data, theta_err)
 
 # load the disk constraints
 flatchain = np.load(diskdir / "flatchain.npy")
-disk_samples = flatchain[:, [0, 9, 10]]
+disk_samples = flatchain[:, [0, 9, 10]]  # M_A, i_disk, PA_disk (DJ convention)
 disk_samples[:, 2] -= 90.0  # convert conventions
 disk_samples[:, [1, 2]] *= deg  # convert *to* radians
 mass_samples, incl_samples, Omega_samples = disk_samples.T
