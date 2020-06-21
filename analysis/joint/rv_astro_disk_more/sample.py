@@ -12,7 +12,8 @@ with m.model:
         draws=3000,
         # start=map_sol,
         chains=4,
-        step=xo.get_dense_nuts_step(target_accept=0.9),
+        cores=4,
+        step=xo.get_dense_nuts_step(target_accept=0.95),
     )
 
 

@@ -18,9 +18,9 @@ if not os.path.isdir(plotdir):
     os.makedirs(plotdir)
 
 trace = pm.load_trace(directory="chains", model=m.model)
-
+ar_data = az.from_pymc3(trace=trace)
 # view summary
-df = az.summary(trace, var_names=m.all_vars)
+df = az.summary(ar_data, var_names=m.all_vars)
 print(df)
 
 # write summary to disk
@@ -31,11 +31,11 @@ f.close()
 
 with az.rc_context(rc={"plot.max_subplots": 80}):
     stem = str(plotdir / "autocorr{:}.png")
-    efficient_autocorr(trace, var_names=m.all_vars, figstem=stem)
+    efficient_autocorr(ar_data, var_names=m.all_vars, figstem=stem)
 
     # make a traceplot
     stem = str(plotdir / "trace{:}.png")
-    efficient_trace(trace, var_names=m.all_vars, figstem=stem)
+    efficient_trace(ar_data, var_names=m.all_vars, figstem=stem)
 
 # make a nice corner plot of the variables we care about
 df = pm.trace_to_dataframe(trace)

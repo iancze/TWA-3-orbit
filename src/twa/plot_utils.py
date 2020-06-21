@@ -116,6 +116,7 @@ def efficient_trace(trace, var_names, figstem, max_panel=6):
     n = 0
     i = 0
     while n <= N:
+        print("Plotting {:} of {:}".format(n, N))
         plot_vars = var_names[n : n + max_panel]
 
         az.plot_trace(trace, var_names=plot_vars)
