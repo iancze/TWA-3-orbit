@@ -136,6 +136,10 @@ with pm.Model() as model:
         + offset_keck
     )
 
+    # Boolean variable to check whether the outer orbit increases in velocity
+    # over the observational baseline
+    pm.Deterministic("increasing", rv3_keck[-1] > rv3_keck[0])
+
     # since we have 4 instruments, we need to predict 4 different dataseries
     def get_RVs(t1, t2, offset):
         """

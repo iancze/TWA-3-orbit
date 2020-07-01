@@ -31,10 +31,6 @@ Try the environment file.
 
 There are three top-level directories for the close, wide, and joint analysis paths. These are outside of the package itself, and are the scripts we run to launch the analysis for each sub-model. The scripts are launched from within those directories. Each orbital scenario typically has a `model.py`, `sample.py` and `plot.py` code in it.
 
-## Data assets directory
-
-We need to find a way to keep the location of the assets paired easily with the main scripts. How can they load the same datafiles, regardless of which directory we are invoking things from?
-
 
 ## Orbital fits
 
@@ -82,7 +78,7 @@ I feel like this must be a coincidence. Naively, for an eccentric orbit like thi
 ### Omega_B (outer binary ascending node)
 From the direction of stellar motion, we are confident that we have broken whether i_B is < or > 90 degrees. i_B is clearly > 90, since the secondary is moving *clockwise*.
 
-Breaking the degeneracy of which node is the ascending (moving away from us, by our definition) rests upon the trend that the radial velocity of B is increasing over our baseline.
+Breaking the degeneracy of which node is the ascending (moving away from us, by our definition) and the value of omega_outer rests upon whether the velocity of B is greater or less than gamma_A. It also possibly involves the trend that the radial velocity of B is increasing over our baseline.
 
 ## Configurations
 

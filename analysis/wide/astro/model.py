@@ -11,8 +11,8 @@ import theano.tensor as tt
 from astropy.io import ascii
 from exoplanet.distributions import Angle
 
-from src.constants import *
-import src.data as d
+from twa.constants import *
+import twa.data as d
 
 zeros = np.zeros_like(d.wds[0])
 
@@ -33,14 +33,15 @@ with pm.Model() as model:
     logP = pm.Normal("logP", mu=np.log(400), sd=0.8)
     P = pm.Deterministic("P", tt.exp(logP) * yr)  # days
 
-    omega = Angle("omega", testval=180 * deg)  # - pi to pi
+    # omega = Angle("omega", testval=180 * deg)  # - pi to pi
+    omega = Angle("omega")  # - pi to pi
 
     # because we don't have RV information in this model,
     # Omega and Omega + 180 are degenerate.
     # I think flipping Omega also advances omega and phi by pi
     # So, just limit it to -90 to 90 degrees
-    # Omega_intermediate = Angle("OmegaIntermediate", testval=0 * deg) # - pi to pi
-    # Omega = pm.Deterministic("Omega", Omega_intermediate/2 + np.pi/2) # 0 to pi
+    # Omega_intermediate = Angle("OmegaIntermediate")  # - pi to pi
+    # Omega = pm.Deterministic("Omega", Omega_intermediate / 2 + np.pi / 2)  # 0 to pi
     Omega = Angle("Omega")
 
     phi = Angle("phi")  # phase (Mean anom) at t = 0

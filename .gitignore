@@ -112,7 +112,7 @@ venv.bak/
 # ignore MCMC samples since these are large 
 chains
 # ignore the trace plots, since these are large
-figures/autocorr*.png 
-figures/trace*.png
+autocorr*.png 
+trace*.png
 
 setup_twa.sh
