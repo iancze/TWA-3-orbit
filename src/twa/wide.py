@@ -49,6 +49,8 @@ def plot_sep_pa(trace, m):
     # ax[1].plot(jds, theta_data, **pkw)
     ax[1].errorbar(d.wds[0], d.wds[3], yerr=tot_theta_err, **ekw)
 
+    return fig
+
 
 def plot_sky(trace, m):
     # plot sky position for a full orbit
@@ -58,7 +60,7 @@ def plot_sky(trace, m):
         ts_full = xs_phase * m.P + m.t_periastron
         predict_full = m.orbit.get_relative_angles(ts_full, m.parallax)
 
-    fig_sky, ax_sky = plt.subplots(nrows=1, figsize=(4, 4))
+    fig, ax = plt.subplots(nrows=1, figsize=(4, 4))
 
     for sample in xo.get_samples_from_trace(trace, size=20):
 
@@ -69,17 +71,17 @@ def plot_sky(trace, m):
 
         x_full = rho_full * np.cos(theta_full)  # X North
         y_full = rho_full * np.sin(theta_full)
-        ax_sky.plot(y_full, x_full, color="C0", lw=0.8, alpha=0.7)
+        ax.plot(y_full, x_full, color="C0", lw=0.8, alpha=0.7)
 
     xs = d.wds[1] * np.cos(d.wds[3])  # X is north
     ys = d.wds[1] * np.sin(d.wds[3])  # Y is east
 
-    ax_sky.plot(ys, xs, "ko")
-    ax_sky.set_ylabel(r"$\Delta \delta$ ['']")
-    ax_sky.set_xlabel(r"$\Delta \alpha \cos \delta$ ['']")
-    ax_sky.invert_xaxis()
-    ax_sky.plot(0, 0, "k*")
-    ax_sky.set_aspect("equal", "datalim")
-    fig_sky.subplots_adjust(left=0.18, right=0.82)
+    ax.plot(ys, xs, "ko")
+    ax.set_ylabel(r"$\Delta \delta$ ['']")
+    ax.set_xlabel(r"$\Delta \alpha \cos \delta$ ['']")
+    ax.invert_xaxis()
+    ax.plot(0, 0, "k*")
+    ax.set_aspect("equal", "datalim")
+    fig.subplots_adjust(left=0.18, right=0.82)
 
     return fig

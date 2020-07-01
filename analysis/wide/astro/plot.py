@@ -51,9 +51,6 @@ if diagnostics:
     fig = corner.corner(samples)
     fig.savefig(plotdir / "corner.png")
 
-import sys
-
-sys.exit()
 
 fig = wide.plot_sep_pa(trace, m)
 fig.savefig(plotdir / "sep_pa.pdf")
