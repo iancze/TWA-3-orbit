@@ -6,6 +6,8 @@ from astropy.io import fits
 from matplotlib.colors import LinearSegmentedColormap as LSC
 from matplotlib.patches import Ellipse
 from matplotlib.ticker import MultipleLocator
+import os
+from pathlib import Path
 
 # ran bettermoments with
 # bettermoments 12CO.fits -method quadratic -clip 6 -rms 1.6e-03
@@ -82,6 +84,8 @@ def plot_gas(ax, cax):
     Load this dataset and plot it on that ax.
     """
 
+    p = Path(os.getenv("TWA_DATA_ROOT"))
+
     # shift the image by setting the axes limits
     mu_RA = 0.0
     mu_DEC = 0.0
@@ -90,7 +94,7 @@ def plot_gas(ax, cax):
 
     v_off = 9.26  # km/s
 
-    data, beam, ext = load_data("12CO_v0.fits", mu_RA, mu_DEC)
+    data, beam, ext = load_data(p / "disk/12CO_v0.fits", mu_RA, mu_DEC)
 
     cmap = cm.RdBu_r
     im = ax.imshow(

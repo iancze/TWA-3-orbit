@@ -188,7 +188,6 @@ with pm.Model() as model:
 
         return (rv1, rv2)
 
-    # expects m/s
     # dates are the first entry in each tuple of (date, rv, err)
     rv1_cfa, rv2_cfa = get_RVs(d.cfa1[0], d.cfa2[0], 0.0)
     rv1_keck, rv2_keck = get_RVs(d.keck1[0], d.keck2[0], offset_keck)
