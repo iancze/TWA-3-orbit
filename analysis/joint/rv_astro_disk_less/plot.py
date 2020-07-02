@@ -14,7 +14,7 @@ from twa.plot_utils import efficient_autocorr, efficient_trace
 from twa import joint
 
 plotdir = Path("figures")
-diagnostics = False
+diagnostics = True
 
 
 if not os.path.isdir(plotdir):

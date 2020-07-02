@@ -353,4 +353,5 @@ all_vars = [
     and ("_angle__" not in var.name)
     and ("_lowerbound__" not in var.name)
     and ("_log__" not in var.name)
+    and (var.name != "increasing")  # arviz doesn't play well with booleans
 ]
