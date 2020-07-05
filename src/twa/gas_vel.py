@@ -98,7 +98,12 @@ def plot_gas(ax, cax):
 
     cmap = cm.RdBu_r
     im = ax.imshow(
-        data * 1e-3 + v_off, cmap=cmap, origin="lower", extent=ext, aspect="equal"
+        data * 1e-3 + v_off,
+        cmap=cmap,
+        origin="lower",
+        extent=ext,
+        aspect="equal",
+        zorder=50,
     )
 
     # plot the colorbar

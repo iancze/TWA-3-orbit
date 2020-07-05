@@ -1,14 +1,109 @@
-import matplotlib.pyplot as plt
+import arviz as az
+import corner
 import exoplanet as xo
-import pandas as pd
 import matplotlib.pyplot as plt
-import pymc3 as pm
 import numpy as np
-from . import data as d
+import pandas as pd
+import pymc3 as pm
 import theano.tensor as tt
-from .gas_vel import plot_gas
 from astropy.time import Time
+import os
+
+from . import data as d
 from .constants import *
+from .gas_vel import plot_gas
+from .plot_utils import efficient_autocorr, efficient_trace
+
+
+def plot_summaries(trace, m, plotdir):
+    ar_data = az.from_pymc3(trace=trace)
+    # view summary
+    df = az.summary(ar_data, var_names=m.all_vars)
+    print(df)
+
+    # write summary to disk
+    f = open(plotdir / "summary.txt", "w")
+    df.to_string(f)
+    f.close()
+
+    with az.rc_context(rc={"plot.max_subplots": 80}):
+        stem = str(plotdir / "autocorr{:}.png")
+        efficient_autocorr(ar_data, var_names=m.all_vars, figstem=stem)
+
+        # make a traceplot
+        stem = str(plotdir / "trace{:}.png")
+        efficient_trace(ar_data, var_names=m.all_vars, figstem=stem)
+
+
+def plot_triangles(df, plotdir):
+
+    if not os.path.isdir(plotdir):
+        os.makedirs(plotdir)
+
+    df = df.copy()
+
+    # make a nice corner plot of the variables we care about
+
+    # convert all params
+    df["omegaInner"] /= deg
+    df["OmegaInner"] /= deg
+    df["inclInner"] /= deg
+
+    df["omegaOuter"] /= deg
+    df["OmegaOuter"] /= deg
+    df["inclOuter"] /= deg
+
+    df["thetaDiskInner"] /= deg
+    df["thetaInnerOuter"] /= deg
+    df["thetaDiskOuter"] /= deg
+
+    df["POuter"] /= yr
+
+    # just the inner parameters
+    inner = [
+        "MAb",
+        "MA",
+        "aInner",
+        "PInner",
+        "eInner",
+        "omegaInner",
+        "OmegaInner",
+        "inclInner",
+        "tPeriastronInner",
+    ]
+    fig = corner.corner(df[inner])
+    fig.savefig(plotdir / "corner-inner.png", dpi=120)
+
+    # posterior on periastron passage
+    # r_p = a * (1 - e)
+    df["rp"] = df["aOuter"] * (1 - df["eOuter"])  # au
+
+    # just the outer parameters
+    outer = [
+        "MA",
+        "MB",
+        "aOuter",
+        "POuter",
+        "omegaOuter",
+        "OmegaOuter",
+        "eOuter",
+        "inclOuter",
+        "gammaOuter",
+        "tPeriastronOuter",
+        "rp",
+    ]
+    fig = corner.corner(df[outer])
+    fig.savefig(plotdir / "corner-outer.png", dpi=120)
+
+    # masses
+    masses = ["MAa", "MAb", "MA", "MB", "Mtot"]
+    fig = corner.corner(df[masses])
+    fig.savefig(plotdir / "corner-masses.png", dpi=120)
+
+    # mutual inclination between inner orbit and outer orbit
+    muts = ["thetaDiskInner", "thetaInnerOuter", "thetaDiskOuter"]
+    fig = corner.corner(df[muts])
+    fig.savefig(plotdir / "corner-muts.png", dpi=120)
 
 
 def plot_interior_RV(trace, m):
@@ -279,12 +374,6 @@ def plot_errorbar(ax, thetas, rhos, theta_errs, rho_errs, **kwargs):
         ax.plot(xs, ys, **kwargs)
 
 
-def plot_data_model_resid_outer(trace, m):
-    fig, ax = plt.subplots(nrows=3)
-
-    ax
-
-
 def plot_sep_pa(trace, m):
 
     # Plot the astrometric fits.
@@ -385,30 +474,27 @@ def plot_sep_pa(trace, m):
         ]
     )
 
-    # draw one sample to get the error bars
-    for sample in xo.get_samples_from_trace(trace, size=1):
-        sep_err = np.sqrt(d.wds[2] ** 2 + np.exp(2 * sample["logRhoS"]))
-        ax_sep.errorbar(jd_to_year(d.wds[0]), d.wds[1], yerr=sep_err, **ekw)
-        ax_sep.set_ylabel(r"$\rho\;[{}^{\prime\prime}]$")
-        ax_sep.set_xlim(*yr_lim)
-        ax_sep.xaxis.set_ticklabels([])
+    # get the mean value of all samples to use for errorbars and offset
+    sep_err = np.sqrt(d.wds[2] ** 2 + np.exp(2 * np.mean(trace["logRhoS"])))
+    ax_sep.errorbar(jd_to_year(d.wds[0]), d.wds[1], yerr=sep_err, **ekw)
+    ax_sep.set_ylabel(r"$\rho\;[{}^{\prime\prime}]$")
+    ax_sep.set_xlim(*yr_lim)
+    ax_sep.xaxis.set_ticklabels([])
 
-        pa_err = np.sqrt(d.wds[4] ** 2 + np.exp(2 * sample["logThetaS"]))
-        ax_pa.errorbar(
-            jd_to_year(d.wds[0]), d.wds[3] / deg + 360, yerr=pa_err / deg, **ekw
-        )
-        ax_pa.set_ylabel(r"$\theta\ [{}^\circ]$")
-        ax_pa.set_xlim(*yr_lim)
-        ax_pa.xaxis.set_ticklabels([])
+    pa_err = np.sqrt(d.wds[4] ** 2 + np.exp(2 * np.mean(trace["logThetaS"])))
+    ax_pa.errorbar(jd_to_year(d.wds[0]), d.wds[3] / deg + 360, yerr=pa_err / deg, **ekw)
+    ax_pa.set_ylabel(r"$\theta\ [{}^\circ]$")
+    ax_pa.set_xlim(*yr_lim)
+    ax_pa.xaxis.set_ticklabels([])
 
-        VB_err = np.sqrt(d.keck3[2] ** 2 + np.exp(2 * sample["logjitterkeck"]))
-        ax_V.errorbar(
-            jd_to_year(d.keck3[0]),
-            d.keck3[1] - sample["offsetKeck"],
-            yerr=VB_err,
-            **kekw,
-            label="Keck",
-        )
+    VB_err = np.sqrt(d.keck3[2] ** 2 + np.exp(2 * np.mean(trace["logjitterkeck"])))
+    ax_V.errorbar(
+        jd_to_year(d.keck3[0]),
+        d.keck3[1] - np.mean(trace["offsetKeck"]),
+        yerr=VB_err,
+        **kekw,
+        label="Keck",
+    )
 
     ax_V.set_xlim(*yr_lim)
     ax_V.set_ylim(6, 11)
@@ -463,19 +549,19 @@ def plot_sep_pa(trace, m):
         )
 
     # iterate among several samples to plot the orbits on the sep_pa.pdf figure.
-    for sample in xo.get_samples_from_trace(trace, size=15):
+    for sample in xo.get_samples_from_trace(trace, size=30):
 
         vBs = xo.eval_in_model(rv3, point=sample, model=m.model)
         # we can select orbits which have a higher vB[-1] than vB[0]
         # and colorize them
 
-        increasing = vBs[-1] > vBs[0]
-        if increasing:
+        # increasing = vBs[-1] > vBs[0]
+        if sample["increasing"]:
             lkw["color"] = "C0"
+            ax_V.plot(t_yr, vBs, **lkw, zorder=1)
         else:
-            lkw["color"] = "0.6"
-
-        ax_V.plot(t_yr, vBs, **lkw)
+            lkw["color"] = "C1"
+            ax_V.plot(t_yr, vBs, **lkw, zorder=0)
 
         rho, theta = xo.eval_in_model(angles_outer, point=sample, model=m.model)
         ax_sep.plot(t_yr, rho, **lkw)
@@ -485,22 +571,3 @@ def plot_sep_pa(trace, m):
         ax_sky.plot(Y, X, **lkw)
 
     return fig
-
-
-def sort_samples(trace, m, size=100):
-    """
-    Sort the samples based on whether they have increasing or decreasing v_B.
-    """
-
-    df_inc = pd.DataFrame()
-    df_dec = pd.DataFrame()
-    for sample in xo.get_samples_from_trace(trace, size=size):
-        vBs = xo.eval_in_model(m.rv3_keck, point=sample, model=m.model)
-        increasing = vBs[-1] > vBs[0]
-
-        if increasing:
-            df_inc = df_inc.append(sample, ignore_index=True)
-        else:
-            df_dec = df_dec.append(sample, ignore_index=True)
-
-    return df_inc, df_dec
