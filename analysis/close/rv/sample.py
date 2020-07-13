@@ -1,8 +1,8 @@
 import pymc3 as pm
 import exoplanet as xo
-import os 
+import os
 
-import src.close.rv.model as m
+import model_apf as m
 
 # with m.model:
 #     map_sol = xo.optimize(vars=[m.logKAa, m.logKAb, m.P, m.t_periastron, m.omega])

@@ -382,10 +382,17 @@ def plot_sep_pa(trace, m):
     # set up the figure
 
     # plot styles
-    pkw = {"marker": "o", "ms": 3, "color": "C0", "ls": "", "zorder": 20}
+    pkw = {"marker": "o", "ms": 3, "color": "k", "ls": "", "zorder": 20}
     lkw = {"ls": "-", "lw": 0.5}
-    ekw = {"marker": "o", "ms": 3, "ls": "", "elinewidth": 0.8, "zorder": 20}
-    kekw = {**ekw, "color": "C2"}
+    ekw = {
+        "marker": "o",
+        "ms": 3,
+        "ls": "",
+        "elinewidth": 0.8,
+        "zorder": 20,
+        "color": "k",
+    }
+    kekw = {**ekw, "color": "maroon"}
 
     xx = 7.1  # [in] textwidth
     hmargin = 0.0
