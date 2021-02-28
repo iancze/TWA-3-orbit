@@ -10,137 +10,30 @@ import pymc3 as pm
 import model as m
 import twa.data as d
 from twa.constants import *
-from twa.plot_utils import efficient_autocorr, efficient_trace
 from twa import joint
 
 plotdir = Path("figures")
-diagnostics = True
-
-if not os.path.isdir(plotdir):
-    os.makedirs(plotdir)
 
 trace = pm.load_trace(directory="chains", model=m.model)
 
+df = pm.trace_to_dataframe(trace)
+joint.plot_triangles(df, plotdir)
+
+diagnostics = False
 if diagnostics:
-    ar_data = az.from_pymc3(trace=trace)
-    # view summary
-    df = az.summary(ar_data, var_names=m.all_vars)
-    print(df)
+    joint.plot_summaries(trace, m, plotdir)
 
-    # write summary to disk
-    f = open(plotdir / "summary.txt", "w")
-    df.to_string(f)
-    f.close()
+# select where v_B is increasing
+df_inc = df.loc[df["increasing"] == True]
+joint.plot_triangles(df_inc, plotdir / "inc")
 
-    with az.rc_context(rc={"plot.max_subplots": 80}):
-        stem = str(plotdir / "autocorr{:}.png")
-        efficient_autocorr(ar_data, var_names=m.all_vars, figstem=stem)
+df_dec = df.loc[df["increasing"] == False]
+joint.plot_triangles(df_dec, plotdir / "dec")
 
-        # make a traceplot
-        stem = str(plotdir / "trace{:}.png")
-        efficient_trace(ar_data, var_names=m.all_vars, figstem=stem)
 
-    # make a nice corner plot of the variables we care about
-    df = pm.trace_to_dataframe(trace)
+# fig = joint.gamma_A_posterior(trace, m)
+# fig.savefig(plotdir / "gamma_A.pdf")
 
-    # convert all params
-    df["omegaInner"] /= deg
-    df["OmegaInner"] /= deg
-    df["inclInner"] /= deg
-
-    df["omegaOuter"] /= deg
-    df["OmegaOuter"] /= deg
-    df["inclOuter"] /= deg
-
-    df["thetaDiskInner"] /= deg
-    df["thetaInnerOuter"] /= deg
-    df["thetaDiskOuter"] /= deg
-
-    df["POuter"] /= yr
-
-    # save the final df
-    df.to_csv("chains/trace.csv")
-
-    # just the inner parameters
-    inner = [
-        "MAb",
-        "MA",
-        "aInner",
-        "PInner",
-        "eInner",
-        "omegaInner",
-        "OmegaInner",
-        "inclInner",
-        "tPeriastronInner",
-    ]
-    fig = corner.corner(df[inner])
-    fig.savefig(plotdir / "corner-inner.png", dpi=120)
-
-    # just the outer parameters
-    outer = [
-        "MA",
-        "MB",
-        "aOuter",
-        "POuter",
-        "omegaOuter",
-        "OmegaOuter",
-        "eOuter",
-        "inclOuter",
-        "gammaOuter",
-        "tPeriastronOuter",
-    ]
-    fig = corner.corner(df[outer])
-    fig.savefig(plotdir / "corner-outer.png", dpi=120)
-
-    # masses
-    masses = ["MAa", "MAb", "MA", "MB", "Mtot"]
-    fig = corner.corner(df[masses])
-    fig.savefig(plotdir / "corner-masses.png", dpi=120)
-
-    # posterior on periastron passage
-    # r_p = a * (1 - e)
-    df["rp"] = df["aOuter"] * (1 - df["eOuter"])  # au
-
-    # mutual inclination between inner orbit and outer orbit
-    muts = ["thetaDiskInner", "thetaInnerOuter", "thetaDiskOuter", "rp"]
-    fig = corner.corner(df[muts])
-    fig.savefig(plotdir / "corner-muts.png", dpi=120)
-
-df, df_decreasing = joint.sort_samples(trace, m)
-# convert all params
-df["omegaInner"] /= deg
-df["OmegaInner"] /= deg
-df["inclInner"] /= deg
-
-df["omegaOuter"] /= deg
-df["OmegaOuter"] /= deg
-df["inclOuter"] /= deg
-
-df["thetaDiskInner"] /= deg
-df["thetaInnerOuter"] /= deg
-df["thetaDiskOuter"] /= deg
-
-df["POuter"] /= yr
-
-# just the outer parameters
-outer = [
-    "MA",
-    "MB",
-    "aOuter",
-    "POuter",
-    "omegaOuter",
-    "OmegaOuter",
-    "eOuter",
-    "inclOuter",
-    "gammaOuter",
-    "tPeriastronOuter",
-]
-fig = corner.corner(df[outer])
-fig.savefig(plotdir / "corner-increasing.png", dpi=120)
-
-import sys
-
-sys.exit()
 
 fig = joint.plot_interior_RV(trace, m)
 fig.savefig(plotdir / "RV_inner.pdf")
