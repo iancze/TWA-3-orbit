@@ -12,12 +12,8 @@ from pathlib import Path
 # ran bettermoments with
 # bettermoments 12CO.fits -method quadratic -clip 6 -rms 1.6e-03
 
-
-# measured using the dust dataset of UZTauE_final.ms and uvmodelfit with an elliptical Gaussian
-mu_RA = 0.0  # (525 - 478.768 ) * 0.015 # x
-mu_DEC = 0.0  # (538.165 - 525) * 0.015 # y from 0, 0
-# center is 525, 525
-
+mu_RA = 0.0  # 
+mu_DEC = 0.0  #
 
 def load_data(fname, mu_RA, mu_DEC):
     # load the dust figure
@@ -35,8 +31,7 @@ def load_data(fname, mu_RA, mu_DEC):
     # RA coordinates
     CDELT1 = header[
         "CDELT1"
-    ]  # decimal degrees. Note that not all decimal degrees are the same distance on the sky
-    # since this depends on what declination we're at, too!
+    ]  # decimal degrees. 
     CRPIX1 = header["CRPIX1"] - 1.0  # Now indexed from 0
     # DEC coordinates
     CDELT2 = header["CDELT2"]
